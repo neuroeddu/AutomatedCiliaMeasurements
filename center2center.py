@@ -11,7 +11,6 @@ def make_lists(fields):
 
     return cell_list, cilia_list
     
-# TODO FIX CILIA REPEATS
 def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
     cell_to_cilia = [
         {
@@ -49,7 +48,6 @@ def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
     return cilia_to_cell
 
                  
-
 def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
     if cilia_to_cell[cilia]["cell"] == None:
         cilia_to_cell[cilia]["cell"] = cell
@@ -65,50 +63,47 @@ def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
         cell_to_cilia[old_cell]["cilia"] = None
         cell_to_cilia[old_cell]["cilia_tried"].add(cilia)
 
-# todo: make it into csv (todo make cilia num col?)
-def convert_to_csv(cilia_to_cell):
-    csv_columns = ['cell','path_length']
-    with open("Neighbors.csv", 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
-        writer.writeheader()
-        for data in cilia_to_cell:
-            writer.writerow(data)
+def convert_dict_to_csv(cilia_to_cell):
+    df = pd.DataFrame.from_dict(cilia_to_cell)
+    result = df.to_csv(path_or_buf='/Users/sneha/Desktop/mni/newneighbor.csv', header=["PathLength", "Cell"], index_label="Cilia")
 
-def add_cilia_col():
-    with open('Neighbors.csv', 'w') as csvoutput:
-        writer = csv.writer(csvoutput)
-        index = 0
-        for row in writer:
-            index += 1
-            if row[0] == "cell":
-                writer.writerow(row+["cilia"])
-            else:
-                writer.writerow(row+[index])
+def remove_dups_dict(cilia_to_cell):
+    # what do in case of eq? ask, put method in to easily fix
+    # ok so what do i want to do? remove duplicates from dict
+    # so store list of visited stuff, need cilia & cell so can store as tuple (cilia, cell)
+    # cell : celi
 
-def remove_dups():
-    modified_csv_dict = {}
-    with open('Neighbors.csv', newline='') as input:
-        reader = csv.DictReader(input)
-        for line_dict in reader:
-            if line_dict["cell"] in modified_csv_dict:
-                if line_dict["path_length"] < modified_csv_dict[line_dict["cell"]]["path_length"]:
-                    modified_csv_dict[line_dict["cell"]] = line_dict
-            else:
-                modified_csv_dict[line_dict["cell"]] = line_dict
+    cell_to_celia_visitation_dict = {}
+    for cilia_index, cilia in enumerate(cilia_to_cell):
+        if cilia["cell"] in cell_to_celia_visitation_dict: # if cell alr in visited list of cells
+            old_cilia_index = cell_to_celia_visitation_dict[cilia["cell"]]
+            old_cilia = cilia_to_cell[old_cilia_index]
+            if cilia["path_length"] < old_cilia["path_length"]: # if cur path length < path length of prev 
+                old_cilia["path_length"] = 0.00 # set the prev one's path length to 0 and cell to none
+                old_cilia["cell"] = -1
+                cell_to_celia_visitation_dict[cilia["cell"]] = cilia_index
+            else: # if path length of prev is better / same, keep prev 
+                cilia["path_length"] = 0.00
+                cilia["cell"] = -1
+        else:
+            cell_to_celia_visitation_dict[cilia["cell"]] = cilia_index
+    
+    return cilia_to_cell
 
-    for row in modified_csv_dict.values():
-        print(row)
 
-# TODO SEGREGATE BY IMAGES -- ROW 0
+# TODO SEGREGATE BY IMAGES 
 # TODO REMOVE DUPS FROM CSV
-# TODO ADD CILIA COL TO CSV 
+ 
 # TODO CLEAN UP CODE -- stop hard coding things!
 def main(): 
     cell_list, cilia_list = make_lists(['Location_Center_X', 'Location_Center_Y']) # TODO SEGREGATE IM HERE
     cilia_to_cell = which_cilia_closest(cell_list, cilia_list) 
-    convert_to_csv(cilia_to_cell) #TODO ADD THIRD CILIA COL TO CSV
-    add_cilia_col()
-    remove_dups() #TODO REMOVE DUPS FROM CSV
+    cilia_to_cell_no_dups = remove_dups_dict(cilia_to_cell)
+    print(cilia_to_cell_no_dups)
+    convert_dict_to_csv(cilia_to_cell_no_dups)
+    # convert_to_csv(cilia_to_cell) #TODO ADD THIRD CILIA COL TO CSV
+    # add_cilia_col()
+    # remove_dups() #TODO REMOVE DUPS FROM CSV
 
 if __name__ == "__main__":
     main()
