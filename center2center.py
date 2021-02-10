@@ -2,15 +2,15 @@ import csv
 import pandas as pd
 from math import sqrt
 
+################################# TO CHANGE #################################
 cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
 output_csv_dir_path='/Users/sneha/Desktop/mni'
 num_im=3
+################################# TO CHANGE #################################
 
-# TODO DF FIX -- DON'T MAKE MULTIPLE DF 
-# TODO MERGE INTO ONE CSV INSTEAD OF MULTIPLE (???)
-# TODO MAKE CELLS START FROM ONE IN CODE, NOT BY ALTERING CSV AT END
-# TODO STOP HARD CODING NUM OF IMAGES
+# TODO maybe -- merge into 1 csv instead of multiple 
+# TODO maybe -- stop hard coding number of images
 
 # does the analysis for multiple images 
 def batch_script():
