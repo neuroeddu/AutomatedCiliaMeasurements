@@ -43,8 +43,8 @@ def helper_make_lists(csv_path, im_num): # makes list grouped by im
 
 # makes lists
 def make_lists(im_num): 
-    cell_list = helper_make_lists(cell_csv_path, 1)
-    cilia_list = helper_make_lists(cilia_csv_path, 1)
+    cell_list = helper_make_lists(cell_csv_path, im_num)
+    cilia_list = helper_make_lists(cilia_csv_path, im_num)
 
     return cell_list, cilia_list
 
