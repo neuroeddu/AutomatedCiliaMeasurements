@@ -2,15 +2,44 @@ import csv
 import pandas as pd
 from math import sqrt
 
-def make_lists(fields):
-    cell_df = pd.read_csv('/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv', skipinitialspace=True, usecols=fields)
-    cell_list = cell_df.values.tolist()
+cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
+cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
+output_csv_dir_path='/Users/sneha/Desktop/mni'
+num_im=3
 
-    cilia_df = pd.read_csv('/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv', skipinitialspace=True, usecols=fields)
-    cilia_list = cilia_df.values.tolist()
+# TODO DF FIX -- DON'T MAKE MULTIPLE DF 
+# TODO MERGE INTO ONE CSV INSTEAD OF MULTIPLE (???)
+# TODO MAKE CELLS START FROM ONE IN CODE, NOT BY ALTERING CSV AT END
+# TODO STOP HARD CODING NUM OF IMAGES
+
+# does the analysis for multiple images 
+def batch_script():
+    for num in range(1, num_im+1):
+        cell_list, cilia_list = make_lists(num)
+        cilia_to_cell = which_cilia_closest(cell_list, cilia_list) 
+        cilia_to_cell_no_dups = remove_dups_dict(cilia_to_cell)
+        print(cilia_to_cell_no_dups)
+        output_path=output_csv_dir_path + '/' + 'im_' + str(num) + '.csv'
+        convert_dict_to_csv(cilia_to_cell_no_dups, output_path)
+
+# makes df, segregates by im, returns as li
+def helper_make_lists(csv_path, im_num):
+    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
+    df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
+    grouped = df.groupby(df.ImageNumber)
+    im_df = grouped.get_group(im_num) 
+    im_df.drop('ImageNumber', axis=1, inplace=True)
+    new_list = im_df.values.tolist()
+    return new_list
+
+# makes lists
+def make_lists(im_num): 
+    cell_list = helper_make_lists(cell_csv_path, 1)
+    cilia_list = helper_make_lists(cilia_csv_path, 1)
 
     return cell_list, cilia_list
-    
+
+# finds out which cilia is closest to which cell assuming cutoff passed in (or none if not) & 1:1 cell:cilia relationship
 def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
     cell_to_cilia = [
         {
@@ -29,7 +58,7 @@ def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
 
     updated_cilia = True
     
-    while (updated_cilia):
+    while (updated_cilia): # while cilia are being updated, calculate lengths and see if the cilia should be added
         updated_cilia = False
         for i, cell in enumerate(cell_list):
             x_cell = cell[0]
@@ -47,31 +76,30 @@ def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
 
     return cilia_to_cell
 
-                 
+# associate a cell with a cilia 
 def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
     if cilia_to_cell[cilia]["cell"] == None:
-        cilia_to_cell[cilia]["cell"] = cell
+        cilia_to_cell[cilia]["cell"] = cell+1
         cilia_to_cell[cilia]["path_length"] = result
         cell_to_cilia[cell]["cilia"] = cilia
         return;
     
     else:
         old_cell = cilia_to_cell[cilia]["cell"]
-        cilia_to_cell[cilia]["cell"] = cell
+        cilia_to_cell[cilia]["cell"] = cell+1
         cilia_to_cell[cilia]["path_length"] = result
         cell_to_cilia[cell]["cilia"] = cilia
         cell_to_cilia[old_cell]["cilia"] = None
         cell_to_cilia[old_cell]["cilia_tried"].add(cilia)
 
-def convert_dict_to_csv(cilia_to_cell):
+# convert 
+def convert_dict_to_csv(cilia_to_cell, output_path):
     df = pd.DataFrame.from_dict(cilia_to_cell)
-    result = df.to_csv(path_or_buf='/Users/sneha/Desktop/mni/newneighbor.csv', header=["PathLength", "Cell"], index_label="Cilia")
+    df.index += 1 
+    result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Cell"], index_label="Cilia")
 
+# remove duplicates from the dictionary to ensure 1:1 relationship
 def remove_dups_dict(cilia_to_cell):
-    # what do in case of eq? ask, put method in to easily fix
-    # ok so what do i want to do? remove duplicates from dict
-    # so store list of visited stuff, need cilia & cell so can store as tuple (cilia, cell)
-    # cell : celi
 
     cell_to_celia_visitation_dict = {}
     for cilia_index, cilia in enumerate(cilia_to_cell):
@@ -90,20 +118,8 @@ def remove_dups_dict(cilia_to_cell):
     
     return cilia_to_cell
 
-
-# TODO SEGREGATE BY IMAGES 
-# TODO REMOVE DUPS FROM CSV
- 
-# TODO CLEAN UP CODE -- stop hard coding things!
 def main(): 
-    cell_list, cilia_list = make_lists(['Location_Center_X', 'Location_Center_Y']) # TODO SEGREGATE IM HERE
-    cilia_to_cell = which_cilia_closest(cell_list, cilia_list) 
-    cilia_to_cell_no_dups = remove_dups_dict(cilia_to_cell)
-    print(cilia_to_cell_no_dups)
-    convert_dict_to_csv(cilia_to_cell_no_dups)
-    # convert_to_csv(cilia_to_cell) #TODO ADD THIRD CILIA COL TO CSV
-    # add_cilia_col()
-    # remove_dups() #TODO REMOVE DUPS FROM CSV
+    batch_script()
 
 if __name__ == "__main__":
     main()
