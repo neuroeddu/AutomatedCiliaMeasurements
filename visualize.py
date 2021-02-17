@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
 im_csv_dir_path='/Users/sneha/Desktop/mni/cilia-output/'
+center_to_center_fol_path='/Users/sneha/Desktop/mni/csv_output_ex'
 output_im_dir_path='/Users/sneha/Desktop/mni/'
 num_im=3
 ################################# TO CHANGE #################################
@@ -45,8 +46,15 @@ def helper_make_lists(csv_path, im_num): # makes list grouped by im
 def make_lists(im_num): 
     cell_list = helper_make_lists(cell_csv_path, im_num)
     cilia_list = helper_make_lists(cilia_csv_path, im_num)
+    associate_list = helper_c2c_make_list(im_num)
+    return cell_list, cilia_list, associate_list
 
-    return cell_list, cilia_list
+def helper_c2c_make_list(im_num):
+    csv_path = center_to_center_fol_path + '/im_' + im_num 
+    fields = ['Cilia', 'Cell']
+    df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
+    new_list = df.values.tolist()
+    return new_list
 
 # labels image
 def label_im(coordinate_list, im, num, channel):
@@ -58,6 +66,31 @@ def label_im(coordinate_list, im, num, channel):
         write_num = str(i+1)
         d.text((x_coord, y_coord), write_num, fill=(255,255,255,255))
     
+    path = make_paths(num, channel, True)
+    img.save(path)
+
+# cilia to cell line
+# takes in two lists of coords, and cell im
+def all_label(cell_list, cilia_list, associate_list, im, num, channel):
+    img = Image.open(im)
+    for i, val in enumerate(cell_list): # labels cell li pt
+        x_coord = val[0]
+        y_coord = val[1]
+        d = ImageDraw.Draw(img)
+        write_num = str(i+1)
+        d.text((x_coord, y_coord), write_num, fill=(255,255,255,255))
+    
+    for i, val in enumerate(cilia_list): # labels cilia li pt
+        x_coord = val[0]
+        y_coord = val[1]
+        d = ImageDraw.Draw(img)
+        write_num = str(i+1)
+        d.text((x_coord, y_coord), write_num, fill=(255,255,255,255))
+    
+    for i, val in enumerate(associate_list):
+        cilia_num = val[0]
+        cell_num = val[1]
+        
     path = make_paths(num, channel, True)
     img.save(path)
 
