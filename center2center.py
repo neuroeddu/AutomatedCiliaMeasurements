@@ -95,7 +95,7 @@ def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
 # convert 
 def convert_dict_to_csv(cilia_to_cell, output_path):
     df = pd.DataFrame.from_dict(cilia_to_cell)
-    df.index += 1 
+    df.index = df.index + 1
     result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Cell"], index_label="Cilia")
 
 # remove duplicates from the dictionary to ensure 1:1 relationship
