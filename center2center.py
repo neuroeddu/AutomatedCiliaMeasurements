@@ -23,16 +23,17 @@ def batch_script():
 def helper_make_lists(csv_path, im_num):
     fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
     df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
-    grouped = df.groupby(df.ImageNumber)
+    grouped = df.groupby(['ImageNumber'])
     im_df = grouped.get_group(im_num) 
+    print(im_df)
     im_df.drop('ImageNumber', axis=1, inplace=True)
     new_list = im_df.values.tolist()
     return new_list
 
 # makes lists
 def make_lists(im_num): 
-    cell_list = helper_make_lists(cell_csv_path, 1)
-    cilia_list = helper_make_lists(cilia_csv_path, 1)
+    cell_list = helper_make_lists(cell_csv_path, im_num)
+    cilia_list = helper_make_lists(cilia_csv_path, im_num)
 
     return cell_list, cilia_list
 

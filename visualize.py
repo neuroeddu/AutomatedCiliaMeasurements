@@ -61,12 +61,12 @@ def c2c_label(cell_list, cilia_list, associate_list, im, num, channel):
         y_coord = val[1]
         d = ImageDraw.Draw(img)
         write_num = str(i+1)
-        d.text((x_coord, y_coord), write_num, fill=(255,255,255,255))
+        d.text((x_coord, y_coord), write_num, fill=(246, 71, 71, 1))
     
     for i, val in enumerate(associate_list):
         cilia_num = val[0]-1
         cell_num = val[1]-1
-        if not cell_num == -1: # if cell num exists, find x and y coords of cilia and cell 
+        if not cell_num == -2: # if cell num exists, find x and y coords of cilia and cell 
             x_cilia= cilia_list[cilia_num][0]
             y_cilia= cilia_list[cilia_num][1]
             x_cell= cell_list[cell_num][0]
