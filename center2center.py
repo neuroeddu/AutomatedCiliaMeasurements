@@ -6,11 +6,8 @@ from math import sqrt
 cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
 output_csv_dir_path='/Users/sneha/Desktop/mni'
-num_im=3
+num_im=3 # TODO Stop hard coding this
 ################################# TO CHANGE #################################
-
-# TODO maybe -- merge into 1 csv instead of multiple 
-# TODO maybe -- stop hard coding number of images
 
 # does the analysis for multiple images 
 def batch_script():
@@ -93,6 +90,7 @@ def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
         cell_to_cilia[old_cell]["cilia_tried"].add(cilia)
 
 # convert 
+# TODO put it all into one csv
 def convert_dict_to_csv(cilia_to_cell, output_path):
     df = pd.DataFrame.from_dict(cilia_to_cell)
     df.index = df.index + 1
