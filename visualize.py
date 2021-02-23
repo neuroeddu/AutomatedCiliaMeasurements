@@ -11,7 +11,7 @@ center_to_center_fol_path='/Users/sneha/Desktop/mni/csv_output_ex'
 output_im_dir_path='/Users/sneha/Desktop/mni/'
 ################################# TO CHANGE #################################
 
-# TODO : map which cilia to which cell -- line 
+
 def cilia_to_line(): # big func that calls everything else
 
     fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
@@ -113,8 +113,15 @@ def label_im(coordinate_list, im, num, channel):
     img.save(path)
 
 def batch_script(): # runs methods for all images
+    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
+    cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True, usecols=fields)
+    num_im = cell_df.ImageNumber.iat[-1]
+    grouped_cell = cell_df.groupby(['ImageNumber'])
+    cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
+    grouped_cilia = cilia_df.groupby(['ImageNumber'])
+
     for num in range(1, num_im+1):
-        cell_list, cilia_list = make_lists(num)
+        cell_list, cilia_list = make_lists(num, grouped_cell, grouped_cilia)
         cell_channel = '01'
         cilia_channel = '02'
         im_path_cell=make_paths(num, '01', False)
