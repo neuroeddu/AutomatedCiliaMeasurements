@@ -6,13 +6,19 @@ from math import sqrt
 cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
 output_csv_dir_path='/Users/sneha/Desktop/mni'
-num_im=3 # TODO Stop hard coding this
 ################################# TO CHANGE #################################
 
 # does the analysis for multiple images 
 def batch_script():
+    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
+    cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True, usecols=fields)
+    num_im = cell_df.ImageNumber.iat[-1]
+    grouped_cell = cell_df.groupby(['ImageNumber'])
+    cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
+    grouped_cilia = cilia_df.groupby(['ImageNumber'])
+
     for num in range(1, num_im+1):
-        cell_list, cilia_list = make_lists(num)
+        cell_list, cilia_list = make_lists(num, grouped_cell, grouped_cilia)
         cilia_to_cell = which_cilia_closest(cell_list, cilia_list) 
         cilia_to_cell_no_dups = remove_dups_dict(cilia_to_cell)
         print(cilia_to_cell_no_dups)
@@ -20,10 +26,7 @@ def batch_script():
         convert_dict_to_csv(cilia_to_cell_no_dups, output_path)
 
 # makes df, segregates by im, returns as li
-def helper_make_lists(csv_path, im_num):
-    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
-    df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
-    grouped = df.groupby(['ImageNumber'])
+def helper_make_lists(im_num, grouped):
     im_df = grouped.get_group(im_num) 
     print(im_df)
     im_df.drop('ImageNumber', axis=1, inplace=True)
@@ -31,9 +34,9 @@ def helper_make_lists(csv_path, im_num):
     return new_list
 
 # makes lists
-def make_lists(im_num): 
-    cell_list = helper_make_lists(cell_csv_path, im_num)
-    cilia_list = helper_make_lists(cilia_csv_path, im_num)
+def make_lists(im_num, grouped_cell, grouped_cilia): 
+    cell_list = helper_make_lists(im_num, grouped_cell)
+    cilia_list = helper_make_lists(im_num, grouped_cilia)
 
     return cell_list, cilia_list
 

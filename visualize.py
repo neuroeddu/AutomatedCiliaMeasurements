@@ -9,13 +9,20 @@ cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
 im_csv_dir_path='/Users/sneha/Desktop/mni/cilia-output/'
 center_to_center_fol_path='/Users/sneha/Desktop/mni/csv_output_ex'
 output_im_dir_path='/Users/sneha/Desktop/mni/'
-num_im=3
 ################################# TO CHANGE #################################
 
 # TODO : map which cilia to which cell -- line 
 def cilia_to_line(): # big func that calls everything else
+
+    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
+    cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True, usecols=fields)
+    num_im = cell_df.ImageNumber.iat[-1]
+    grouped_cell = cell_df.groupby(['ImageNumber'])
+    cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
+    grouped_cilia = cilia_df.groupby(['ImageNumber'])
+
     for num in range(1, num_im+1):
-        cell_list, cilia_list, associate_list = make_lists_c2c(num)
+        cell_list, cilia_list, associate_list = make_lists_c2c(num, grouped_cell, grouped_cilia)
         im_path=make_paths(num, '01', False)
         c2c_label(cell_list, cilia_list, associate_list, im_path, num, 3)
 
@@ -32,9 +39,9 @@ def make_paths(num, channel, label): #makes paths for us to be able to find init
 
     return path
 
-def make_lists_c2c(im_num): 
-    cell_list = helper_make_lists(cell_csv_path, im_num)
-    cilia_list = helper_make_lists(cilia_csv_path, im_num)
+def make_lists_c2c(im_num, grouped_cell, grouped_cilia): 
+    cell_list = helper_make_lists(im_num, grouped_cell)
+    cilia_list = helper_make_lists(im_num, grouped_cilia)
     associate_list = helper_c2c_make_list(im_num)
     return cell_list, cilia_list, associate_list
 
@@ -78,19 +85,18 @@ def c2c_label(cell_list, cilia_list, associate_list, im, num, channel):
     path = make_paths(num, channel, True)
     img.save(path)
 
-def helper_make_lists(csv_path, im_num): # makes list grouped by im 
-    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
-    df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
-    grouped = df.groupby(df.ImageNumber)
+def helper_make_lists(im_num, grouped):
     im_df = grouped.get_group(im_num) 
+    print(im_df)
     im_df.drop('ImageNumber', axis=1, inplace=True)
     new_list = im_df.values.tolist()
     return new_list
 
 # makes lists
-def make_lists(im_num): 
-    cell_list = helper_make_lists(cell_csv_path, im_num)
-    cilia_list = helper_make_lists(cilia_csv_path, im_num)
+def make_lists(im_num, grouped_cell, grouped_cilia): 
+    cell_list = helper_make_lists(im_num, grouped_cell)
+    cilia_list = helper_make_lists(im_num, grouped_cilia)
+
     return cell_list, cilia_list
 
 # labels image
