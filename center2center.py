@@ -3,9 +3,9 @@ import pandas as pd
 from math import sqrt
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
+cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Nuclei.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
-output_csv_dir_path='/Users/sneha/Desktop/mni'
+output_csv_dir_path='/Users/sneha/Desktop/mni/pkg-cilia-v3/csv_centers_output'
 ################################# TO CHANGE #################################
 
 # does the analysis for multiple images 
@@ -98,7 +98,7 @@ def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
 def convert_dict_to_csv(cilia_to_cell, output_path):
     df = pd.DataFrame.from_dict(cilia_to_cell)
     df.index = df.index + 1
-    result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Cell"], index_label="Cilia")
+    result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Nuclei"], index_label="Cilia")
 
 # remove duplicates from the dictionary to ensure 1:1 relationship
 def remove_dups_dict(cilia_to_cell):

@@ -3,11 +3,11 @@ import csv
 from PIL import Image, ImageDraw, ImageFont
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
+cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Nuclei.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
 im_csv_dir_path='/Users/sneha/Desktop/mni/cilia-output/'
-center_to_center_fol_path='/Users/sneha/Desktop/mni/csv_output_ex'
-output_im_dir_path='/Users/sneha/Desktop/mni/'
+center_to_center_fol_path='/Users/sneha/Desktop/mni/pkg-cilia-v3/csv-centers-output'
+output_im_dir_path='/Users/sneha/Desktop/mni/pkg-cilia-v3/visualize-csv-centers/'
 ################################# TO CHANGE #################################
 
 
@@ -43,7 +43,7 @@ def make_lists_c2c(im_num, grouped_cell, grouped_cilia):
 
 def helper_c2c_make_list(im_num): # finds out what our csv path is 
     csv_path = center_to_center_fol_path + '/im_' + str(im_num) + '.csv'
-    fields = ['Cilia', 'Cell']
+    fields = ['Cilia', 'Nuclei']
     df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
     new_list = df.values.tolist()
     return new_list
