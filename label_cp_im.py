@@ -4,13 +4,13 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia_output_new/im/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/mni/cilia_output_new/im/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/mni/cilia_output_new/im/MyExpt_Centriole.csv'
-im_csv_dir_path='/Users/sneha/Desktop/mni/pkg-cilia-v4/pipeline-output/'
-output_im_dir_path='/Users/sneha/Desktop/mni/pls'
+cell_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Cilia.csv'
+centriole_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Centriole.csv'
+im_csv_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/'
+output_im_dir_path='/Users/sneha/Desktop/mni/labeled_cp_im'
 channel_dict={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
-centriole=False
+centriole=None # True or None
 ################################# TO CHANGE #################################
 
 
@@ -31,9 +31,8 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
     cell_list = helper_make_lists(im_num, grouped_cell)
     cilia_list = helper_make_lists(im_num, grouped_cilia)
     centriole_list=None
-    if grouped_centriole:
-        centriole_list = helper_make_lists(im_num, grouped_centriole)
     
+    centriole_list = grouped_centriole and helper_make_lists(im_num, grouped_centriole)
 
     return cell_list, cilia_list, centriole_list
 
@@ -61,14 +60,14 @@ def batch_script():
     num_im = cell_df.ImageNumber.iat[-1]
     grouped_cell = cell_df.groupby(['ImageNumber'])
     
-    cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
-    grouped_cilia = cilia_df.groupby(['ImageNumber'])
+    grouped_cilia = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields).cilia_df.groupby(['ImageNumber'])
 
     grouped_centriole=None
     # If we have centriole images, read them too. If not, keep the grouped as none (so that we can pass it into the next func)
-    if centriole:
-        centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
-        grouped_centriole = centriole_df.groupby(['ImageNumber'])
+    grouped_centriole=centriole and pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields).groupby(['ImageNumber'])
+    #if centriole:
+    #    centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
+    #    grouped_centriole = centriole_df.groupby(['ImageNumber'])
 
     # Iterate through the images. Make list of nuclei/cilia/centrioles, then make paths for our current image & label+save 
     # image. 

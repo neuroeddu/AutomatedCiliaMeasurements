@@ -3,11 +3,12 @@ import csv
 from PIL import Image, ImageDraw, ImageFont
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Nuclei.csv'
-cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
-im_csv_dir_path='/Users/sneha/Desktop/mni/cilia-output/'
-center_to_center_fol_path='/Users/sneha/Desktop/mni/pkg-cilia-v3/csv-centers-output'
-output_im_dir_path='/Users/sneha/Desktop/mni/pkg-cilia-v3/visualize-csv-centers/'
+cell_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Cilia.csv'
+im_csv_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/'
+center_to_center_fol_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/csv_centers'
+output_im_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/visualizer/'
+
 ################################# TO CHANGE #################################
 
 
@@ -27,12 +28,14 @@ def cilia_to_line(): # big func that calls everything else
 
         
 def make_paths(num, label): #makes paths for us to be able to find init imgs / for images to go 
+    #path = im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + ('_LABELED_FULL.tiff' if label else '.tiff')
+    #path = ((output_im_dir_path + 'NucleusOverlay' + f"{num:04}" + '_LABELED_FULL.tiff') if label else (im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + '.tiff'))
     if label:
-        path = output_im_dir_path + '210115_Cortical_NPC_' + str(num) + '_LABELED_FULL.tiff'
+        path = (output_im_dir_path + 'NucleusOverlay' + f"{num:04}" + '_LABELED_FULL.tiff')
     
-    else:
-        path = im_csv_dir_path + '210115_Cortical_NPC_' + str(num) + '_ch01.tiff'
-
+    else: 
+        path=(im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + '.tiff')
+        print("here")
     return path
 
 def make_lists_c2c(im_num, grouped_cell, grouped_cilia): 
@@ -43,7 +46,7 @@ def make_lists_c2c(im_num, grouped_cell, grouped_cilia):
 
 def helper_c2c_make_list(im_num): # finds out what our csv path is 
     csv_path = center_to_center_fol_path + '/im_' + str(im_num) + '.csv'
-    fields = ['Cilia', 'Nuclei']
+    fields = ['Cilia', 'Nucleus']
     df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
     new_list = df.values.tolist()
     return new_list
@@ -83,7 +86,6 @@ def c2c_label(cell_list, cilia_list, associate_list, im, num):
 
 def helper_make_lists(im_num, grouped):
     im_df = grouped.get_group(im_num) 
-    print(im_df)
     im_df.drop('ImageNumber', axis=1, inplace=True)
     new_list = im_df.values.tolist()
     return new_list
