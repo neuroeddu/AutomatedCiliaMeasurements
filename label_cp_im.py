@@ -31,7 +31,7 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
     cell_list = helper_make_lists(im_num, grouped_cell)
     cilia_list = helper_make_lists(im_num, grouped_cilia)
     centriole_list=None
-    
+
     centriole_list = grouped_centriole and helper_make_lists(im_num, grouped_centriole)
 
     return cell_list, cilia_list, centriole_list
@@ -65,9 +65,6 @@ def batch_script():
     grouped_centriole=None
     # If we have centriole images, read them too. If not, keep the grouped as none (so that we can pass it into the next func)
     grouped_centriole=centriole and pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields).groupby(['ImageNumber'])
-    #if centriole:
-    #    centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
-    #    grouped_centriole = centriole_df.groupby(['ImageNumber'])
 
     # Iterate through the images. Make list of nuclei/cilia/centrioles, then make paths for our current image & label+save 
     # image. 
