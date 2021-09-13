@@ -5,7 +5,9 @@ from math import sqrt
 ################################# TO CHANGE #################################
 cell_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Nucleus.csv'
 cilia_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Cilia.csv'
+centriole_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Centriole.csv'
 output_csv_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/csv_centers'
+centriole=True
 ################################# TO CHANGE #################################
 
 # does the analysis for multiple images 
@@ -16,14 +18,28 @@ def batch_script():
     grouped_cell = cell_df.groupby(['ImageNumber'])
     cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
     grouped_cilia = cilia_df.groupby(['ImageNumber'])
+    if centriole:
+        centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
+        grouped_centriole = centriole_df.groupby(['ImageNumber'])
+
 
     for num in range(1, num_im+1):
         cell_list, cilia_list = make_lists(num, grouped_cell, grouped_cilia)
         cilia_to_cell = which_cilia_closest(cell_list, cilia_list) 
         cilia_to_cell_no_dups = remove_dups_dict(cilia_to_cell)
-        print(cilia_to_cell_no_dups)
-        output_path=output_csv_dir_path + '/' + 'im_' + str(num) + '.csv'
+        #print(cilia_to_cell_no_dups)
+        output_path=output_csv_dir_path + '/im_' + str(num) + '.csv'
         convert_dict_to_csv(cilia_to_cell_no_dups, output_path)
+
+        if centriole:
+            centriole_list, cilia_list = make_lists(num, grouped_centriole, grouped_cilia)
+            cilia_to_centriole = which_cilia_closest(centriole_list, cilia_list) 
+            cilia_to_centriole_no_dups = remove_dups_dict(cilia_to_centriole)
+            #print(cilia_to_cell_no_dups)
+            output_path=output_csv_dir_path + '/centriole_im_' + str(num) + '.csv'
+            convert_dict_to_csv(cilia_to_centriole_no_dups, output_path, True)
+
+
 
 # makes df, segregates by im, returns as li
 def helper_make_lists(im_num, grouped):
@@ -95,10 +111,13 @@ def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
 
 # convert 
 # TODO put it all into one csv
-def convert_dict_to_csv(cilia_to_cell, output_path):
+def convert_dict_to_csv(cilia_to_cell, output_path, centriole_id=False):
     df = pd.DataFrame.from_dict(cilia_to_cell)
     df.index = df.index + 1
-    result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Nucleus"], index_label="Cilia")
+    if centriole_id:
+        result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Centriole"], index_label="Cilia")
+    else:
+        result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Nucleus"], index_label="Cilia")
 
 # remove duplicates from the dictionary to ensure 1:1 relationship
 def remove_dups_dict(cilia_to_cell):
