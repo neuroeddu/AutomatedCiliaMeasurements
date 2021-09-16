@@ -36,8 +36,6 @@ def cilia_to_line(): # big func that calls everything else
             c2c_label(centriole_list, cilia_list, associate_list, im_path, num, True)
         
 def make_paths(num, label, centriole_id=False): #makes paths for us to be able to find init imgs / for images to go 
-    #path = im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + ('_LABELED_FULL.tiff' if label else '.tiff')
-    #path = ((output_im_dir_path + 'NucleusOverlay' + f"{num:04}" + '_LABELED_FULL.tiff') if label else (im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + '.tiff'))
     if label and not centriole_id:
         path = (output_im_dir_path + 'NucleusOverlay' + f"{num:04}" + '_LABELED_FULL.tiff')
     
