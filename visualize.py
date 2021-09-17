@@ -59,12 +59,8 @@ def make_lists_c2c(im_num, grouped_cell, grouped_cilia, centriole_id=False):
     return cell_list, cilia_list, associate_list 
 
 def helper_c2c_make_list(im_num, centriole_id): # finds out what our csv path is 
-    if centriole_id:
-        csv_path = center_to_center_fol_path + '/centriole_im_' + str(im_num) + '.csv'
-        fields = ['Cilia', 'Centriole']
-    else:
-        csv_path = center_to_center_fol_path + '/im_' + str(im_num) + '.csv'
-        fields = ['Cilia', 'Nucleus']
+    csv_path = f'{center_to_center_fol_path}/{"centriole_" if centriole_id else ""}im_{im_num}.csv'
+    fields = ['Cilia', 'Centriole' if centriole_id else 'Nucleus']
     
     df = pd.read_csv(csv_path, skipinitialspace=True, usecols=fields)
     new_list = df.values.tolist()
