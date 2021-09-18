@@ -103,18 +103,6 @@ def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
         cell_to_cilia[old_cell]["cilia"] = None
         cell_to_cilia[old_cell]["cilia_tried"].add(cilia)
 
-# convert 
-# TODO put it all into one csv
-def convert_dict_to_csv(cilia_to_cell, output_path, num, cilia_id=False):
-    df = pd.DataFrame.from_dict(cilia_to_cell)
-    df['Image']=num
-    df.index = df.index + 1
-
-    if cilia_id:
-        result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Centriole"], index_label="Cilia")
-    else:
-        result = df.to_csv(path_or_buf=output_path, header=["PathLength", "Nucleus"], index_label="Centriole")
-
 # remove duplicates from the dictionary to ensure 1:1 relationship
 def remove_dups_dict(cilia_to_cell):
 
@@ -126,7 +114,7 @@ def remove_dups_dict(cilia_to_cell):
             if cilia["path_length"] < old_cilia["path_length"]: # if cur path length < path length of prev 
                 old_cilia["path_length"] = 0.00 # set the prev one's path length to 0 and cell to none
                 old_cilia["cell"] = -1
-                cell_to_celia_visitation_dict[cilia["cell"]] = cilia_index
+                cell_to_cilia_visitation_dict[cilia["cell"]] = cilia_index
             else: # if path length of prev is better / same, keep prev 
                 cilia["path_length"] = 0.00
                 cilia["cell"] = -1
@@ -194,6 +182,33 @@ def remove_some_dups_dict(cilia_to_cell, cell_list):
         
     return cilia_to_cell
 
+def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups):
+
+    c2c_output = [
+        {
+            'path_length_cell': float('inf'),
+            'cell': None,
+            'path_length_cilia': float('inf'),
+            'cilia': None
+        }
+        for num in range(len(centriole_to_cell_no_dups))
+    ]
+
+    for num in range(len(centriole_to_cell_no_dups)):
+        c2c_output[num]['path_length_cell'] = centriole_to_cell_no_dups[num]['path_length']
+        c2c_output[num]['cell'] = centriole_to_cell_no_dups[num]['cell']
+        c2c_output[num]['path_length_cilia'] = centriole_to_cilia_no_dups[num]['path_length']
+        c2c_output[num]['cilia'] = centriole_to_cilia_no_dups[num]['cell']
+
+    return c2c_output
+        
+# convert 
+# TODO put it all into one csv
+def convert_dict_to_csv(cilia_to_cell, output_path, num, cilia_id=False):
+    df = pd.DataFrame.from_dict(cilia_to_cell)
+    df.index = df.index + 1
+    result = df.to_csv(path_or_buf=output_path, header=["PathLengthCell", "Cell", "PathLengthCilia", "Cilia"], index_label="Centriole")
+  
 
 def main(): 
     fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
@@ -202,12 +217,26 @@ def main():
     grouped_cell = cell_df.groupby(['ImageNumber'])
     centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
     grouped_centriole = centriole_df.groupby(['ImageNumber'])
+    cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
+    grouped_cilia = cilia_df.groupby(['ImageNumber'])
+
     for num in range(1, num_im+1):
         cell_list, centriole_list = make_lists(num, grouped_cell, grouped_centriole)
         centriole_to_cell = which_cilia_closest(cell_list, centriole_list) 
         centriole_to_cell_no_dups = remove_some_dups_dict(centriole_to_cell, cell_list)
-        output_path=output_csv_dir_path + '/cent-nuc_im_' + str(num) + '.csv'
-        convert_dict_to_csv(centriole_to_cell_no_dups, output_path, num)
+        
+        #convert_dict_to_csv(centriole_to_cell_no_dups, output_path, num)
+
+        cilia_list, centriole_list = make_lists(num, grouped_cilia, grouped_centriole)
+        centriole_to_cilia = which_cilia_closest(cilia_list, centriole_list) 
+        centriole_to_cilia_no_dups = remove_dups_dict(centriole_to_cilia)
+        #print(cilia_to_cell_no_dups)
+        
+        output_path=output_csv_dir_path + '/im_' + str(num) + '.csv'
+        c2c_output=combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups)
+        #convert_dict_to_csv(cilia_to_centriole_no_dups, output_path, True)
+
+        convert_dict_to_csv(c2c_output, output_path, num)
 
 
 if __name__ == "__main__":
