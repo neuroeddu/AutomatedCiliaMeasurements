@@ -9,39 +9,10 @@ centriole_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_C
 output_csv_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/csv_centers'
 ################################# TO CHANGE #################################
 
-# does the analysis for multiple images 
-def batch_script():
-    fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
-    cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True, usecols=fields)
-    num_im = cell_df.ImageNumber.iat[-1]
-    grouped_cell = cell_df.groupby(['ImageNumber'])
-    cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
-    grouped_cilia = cilia_df.groupby(['ImageNumber'])
-    centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
-    grouped_centriole = centriole_df.groupby(['ImageNumber'])
-
-
-    for num in range(1, num_im+1):
-        cell_list, centriole_list = make_lists(num, grouped_cell, grouped_centriole)
-        centriole_to_cell = which_cilia_closest(cell_list, centriole_list) 
-        centriole_to_cell_no_dups = remove_dups_dict(centriole_to_cell)
-        #print(cilia_to_cell_no_dups)
-        output_path=output_csv_dir_path + '/im_' + str(num) + '.csv'
-        convert_dict_to_csv(centriole_to_cell_no_dups, output_path)
-
-        centriole_list, cilia_list = make_lists(num, grouped_centriole, grouped_cilia)
-        cilia_to_centriole = which_cilia_closest(centriole_list, cilia_list) 
-        cilia_to_centriole_no_dups = remove_dups_dict(cilia_to_centriole)
-        #print(cilia_to_cell_no_dups)
-        output_path=output_csv_dir_path + '/centriole_im_' + str(num) + '.csv'
-        convert_dict_to_csv(cilia_to_centriole_no_dups, output_path, True)
-
 def helper_make_lists(im_num, grouped):
     im_df = grouped.get_group(im_num) 
-    #print(im_df)
     im_df.drop('ImageNumber', axis=1, inplace=True)
-    new_list = im_df.values.tolist()
-    return new_list
+    return im_df.values.tolist()
 
 # makes lists
 def make_lists(im_num, grouped_cell, grouped_centriole): 
@@ -57,26 +28,24 @@ def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
             "cilia": None, # The index of the current closest cilia
             "cilia_tried": set() # The indicies of previously tried cilia that shouldn't be tried again
         }
-        for cell in range(len(cell_list))
+        for _ in cell_list
     ]
     cilia_to_cell = [
         {
             "path_length": float('inf'), # The length of the shortest path
             "cell": None # The index of the cell to which the shortest path corresponds
         }
-        for cilia in cilia_list
+        for _ in cilia_list
     ]
 
     updated_cilia = True
     
-    while (updated_cilia): # while cilia are being updated, calculate lengths and see if the cilia should be added
+    while updated_cilia: # while cilia are being updated, calculate lengths and see if the cilia should be added
         updated_cilia = False
         for i, cell in enumerate(cell_list):
-            x_cell = cell[0]
-            y_cell = cell[1]
+            x_cell, y_cell = cell
             for j, cilia in enumerate(cilia_list):
-                x_cilia = cilia[0]
-                y_cilia = cilia[1]
+                x_cilia, y_cilia = cilia
                 result = sqrt(pow((x_cilia - x_cell), 2) + pow((y_cilia - y_cell), 2))
                 
                 if result > cutoff or j in cell_to_cilia[i]["cilia_tried"] or result >= cilia_to_cell[j]["path_length"]:
@@ -89,35 +58,37 @@ def which_cilia_closest(cell_list, cilia_list, cutoff = float('inf')):
 
 # associate a cell with a cilia 
 def add_cilia(cell_to_cilia, cilia_to_cell, result, cell, cilia):
-    if cilia_to_cell[cilia]["cell"] == None:
-        cilia_to_cell[cilia]["cell"] = cell+1
-        cilia_to_cell[cilia]["path_length"] = result
-        cell_to_cilia[cell]["cilia"] = cilia
-        return;
+
+    old_cell = cilia_to_cell[cilia]["cell"]
+    cilia_to_cell[cilia]["cell"] = cell+1
+    cilia_to_cell[cilia]["path_length"] = result
+    cell_to_cilia[cell]["cilia"] = cilia
+
+    if old_cell is None:
+        return
     
-    else:
-        old_cell = cilia_to_cell[cilia]["cell"]
-        cilia_to_cell[cilia]["cell"] = cell+1
-        cilia_to_cell[cilia]["path_length"] = result
-        cell_to_cilia[cell]["cilia"] = cilia
-        cell_to_cilia[old_cell]["cilia"] = None
-        cell_to_cilia[old_cell]["cilia_tried"].add(cilia)
+    cell_to_cilia[old_cell]["cilia"] = None
+    cell_to_cilia[old_cell]["cilia_tried"].add(cilia)
 
 # remove duplicates from the dictionary to ensure 1:1 relationship
 def remove_dups_dict(cilia_to_cell):
 
     cell_to_cilia_visitation_dict = {}
     for cilia_index, cilia in enumerate(cilia_to_cell):
+
         if cilia["cell"] in cell_to_cilia_visitation_dict: # if cell alr in visited list of cells
             old_cilia_index = cell_to_cilia_visitation_dict[cilia["cell"]]
             old_cilia = cilia_to_cell[old_cilia_index]
+
             if cilia["path_length"] < old_cilia["path_length"]: # if cur path length < path length of prev 
                 old_cilia["path_length"] = 0.00 # set the prev one's path length to 0 and cell to none
                 old_cilia["cell"] = -1
                 cell_to_cilia_visitation_dict[cilia["cell"]] = cilia_index
+
             else: # if path length of prev is better / same, keep prev 
                 cilia["path_length"] = 0.00
                 cilia["cell"] = -1
+                
         else:
             cell_to_cilia_visitation_dict[cilia["cell"]] = cilia_index
     
@@ -125,10 +96,6 @@ def remove_dups_dict(cilia_to_cell):
 
 # remove some duplicates to ensure 1:1 or 2 relation
 def remove_some_dups_dict(cilia_to_cell, cell_list):
-    # what do we want for this? {cell: cilia cilia}
-    # but before, it was just {cell:cilia}
-    # so instead, we want {cell: [cilia cilia]}
-    # then, if visit_dict[cell].len==2 do the find-the-biggest 
     cell_to_cilia = [
     {
         "cilia1": None, # The index of the current closest cilia
@@ -155,7 +122,7 @@ def remove_some_dups_dict(cilia_to_cell, cell_list):
                 cell_to_cilia[cur_cell]["cilia2"] = cilia_index
 
         # case 3: cilia1 and cilia2 full, check whether cilia2 path length> new cilia
-        else:
+        else:  
             old_cilia_index = cell_to_cilia[cur_cell]["cilia2"]
             old_cilia = cilia_to_cell[old_cilia_index]
             # case 3a: cilia2 path length< new cilia, new cilia's path length n cell are 0 
@@ -207,7 +174,7 @@ def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups):
 def convert_dict_to_csv(cilia_to_cell, output_path, num, cilia_id=False):
     df = pd.DataFrame.from_dict(cilia_to_cell)
     df.index = df.index + 1
-    result = df.to_csv(path_or_buf=output_path, header=["PathLengthCell", "Cell", "PathLengthCilia", "Cilia"], index_label="Centriole")
+    result = df.to_csv(path_or_buf=output_path, header=["PathLengthCell", "Nucleus", "PathLengthCilia", "Cilia"], index_label="Centriole")
   
 
 def main(): 
@@ -225,17 +192,12 @@ def main():
         centriole_to_cell = which_cilia_closest(cell_list, centriole_list) 
         centriole_to_cell_no_dups = remove_some_dups_dict(centriole_to_cell, cell_list)
         
-        #convert_dict_to_csv(centriole_to_cell_no_dups, output_path, num)
-
         cilia_list, centriole_list = make_lists(num, grouped_cilia, grouped_centriole)
         centriole_to_cilia = which_cilia_closest(cilia_list, centriole_list) 
         centriole_to_cilia_no_dups = remove_dups_dict(centriole_to_cilia)
-        #print(cilia_to_cell_no_dups)
         
         output_path=output_csv_dir_path + '/im_' + str(num) + '.csv'
         c2c_output=combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups)
-        #convert_dict_to_csv(cilia_to_centriole_no_dups, output_path, True)
-
         convert_dict_to_csv(c2c_output, output_path, num)
 
 
