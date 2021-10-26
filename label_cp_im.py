@@ -17,6 +17,8 @@ centriole=None # True or None
 # Makes paths for us to be able to find init imgs / for images to go 
 def make_paths(num, channel, label): 
     path = im_csv_dir_path + channel_dict[channel] + f"{num:04}" + ('_LABELED.tiff' if label else '.tiff')
+    print(path)
+    1/0
     return path
 
 # Makes list of coordinates for each df 
@@ -60,7 +62,7 @@ def batch_script():
     num_im = cell_df.ImageNumber.iat[-1]
     grouped_cell = cell_df.groupby(['ImageNumber'])
     
-    grouped_cilia = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields).cilia_df.groupby(['ImageNumber'])
+    grouped_cilia = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields).groupby(['ImageNumber'])
 
     grouped_centriole=None
     # If we have centriole images, read them too. If not, keep the grouped as none (so that we can pass it into the next func)
