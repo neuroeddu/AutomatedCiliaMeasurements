@@ -153,10 +153,11 @@ def remove_some_dups_dict(x_to_y, y_list):
     return x_to_y
 
 
-def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups):
+def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num_im):
 
     c2c_output = [
         {
+            'num': num_im,
             'path_length_cell': float('inf'),
             'cell': None,
             'path_length_cilia': float('inf'),
@@ -174,13 +175,13 @@ def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups):
     return c2c_output
 
 # TODO put it all into one csv
-def convert_dict_to_csv(cilia_to_cell, output_path, num, cilia_id=False):
-    df = pd.DataFrame.from_dict(cilia_to_cell)
+def convert_dict_to_csv(c2c_output, output_path):
+    df = pd.DataFrame.from_dict(c2c_output)
     df['centriole'] = (df.index + 1)
     cols = df.columns.tolist()
-    df = df[['cell', 'path_length_cell', 'centriole', 'path_length_cilia', 'cilia']]
+    df = df[['num', 'cell', 'path_length_cell', 'centriole', 'path_length_cilia', 'cilia']]
     df.index = df.index + 1
-    result = df.to_csv(path_or_buf=output_path, header=["Nucleus", "PathLengthCentriole", "Centriole", "PathLengthCilia", "Cilia"], index=False)
+    result = df.to_csv(path_or_buf=output_path, header=["ImageNum", "Nucleus", "PathLengthCentriole", "Centriole", "PathLengthCilia", "Cilia"], index=False)
   
 
 def main(): 
@@ -194,6 +195,7 @@ def main():
     cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
     grouped_cilia = cilia_df.groupby(['ImageNumber'])
 
+    c2c_output = []
     for num in range(1, num_im+1):
         cell_list, centriole_list = make_lists(num, grouped_cell, grouped_centriole)
         centriole_to_cell = which_x_closest(cell_list, centriole_list) 
@@ -204,14 +206,17 @@ def main():
         centriole_to_cilia = which_x_closest(cilia_list, centriole_list) 
         centriole_to_cilia_no_dups = remove_dups_dict(centriole_to_cilia)
 
-        output_path=output_csv_dir_path + '/im_' + str(num) + '.csv'
-        c2c_output=combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups)
-        convert_dict_to_csv(c2c_output, output_path, num)
-        1/0
+        c2c_output_part=combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num)
+        c2c_output+=c2c_output_part
+
+        #convert_dict_to_csv(c2c_output, output_path, num)
         # so what we have now is 
         # centriole cellpathlength cell ciliapathlength cilia
         # want 
         # cell cellpathlength centriole ciliapathlength cilia
+    #flat_list = [item for sublist in t for item in sublist]   
+    output_path=output_csv_dir_path + '/c2coutput.csv' 
+    convert_dict_to_csv(c2c_output, output_path)
 
 
 if __name__ == "__main__":
