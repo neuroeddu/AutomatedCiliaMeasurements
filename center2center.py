@@ -161,7 +161,8 @@ def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num_im)
             'path_length_cell': float('inf'),
             'cell': None,
             'path_length_cilia': float('inf'),
-            'cilia': None
+            'cilia': None,
+            'centriole': num+1
         }
         for num in range(len(centriole_to_cell_no_dups))
     ]
@@ -177,11 +178,9 @@ def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num_im)
 # TODO put it all into one csv
 def convert_dict_to_csv(c2c_output, output_path):
     df = pd.DataFrame.from_dict(c2c_output)
-    df['centriole'] = (df.index + 1)
     cols = df.columns.tolist()
     df = df[['num', 'cell', 'path_length_cell', 'centriole', 'path_length_cilia', 'cilia']]
-    df.index = df.index + 1
-    result = df.to_csv(path_or_buf=output_path, header=["ImageNum", "Nucleus", "PathLengthCentriole", "Centriole", "PathLengthCilia", "Cilia"], index=False)
+    result = df.to_csv(path_or_buf=output_path, header=["ImageNumber", "Nucleus", "PathLengthCentriole", "Centriole", "PathLengthCilia", "Cilia"], index=False)
   
 
 def main(): 
