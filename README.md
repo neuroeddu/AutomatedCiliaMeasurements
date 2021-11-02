@@ -2,12 +2,22 @@
 Pipeline to measure cilia, cell nucleis, and which cilia are close to which cell nucleis from microscopy images using CellProfiler and Python.
 
 # Components
-1) CellProfiler pipeline -- This collects the number of cell nuclei and cilia, as well as where they are in the image (their centres) & their sizes/shapes. It also saves the trace of nuclei/cilia seen in the CP pipeline.
+1) CellProfiler pipeline -- This collects the number of cell nuclei, cilia, and centrioles, as well as where they are in the image (their centres) & their sizes/shapes. It also saves the trace of nuclei/cilia/centrioles seen in the CP pipeline.
 
-2) Python script centertocenter.py -- This finds out which cilia is closest to which nuclei given the above pipeline, assuming one cell:one cilia ratio and a threshold length away they can be (in pixels). 
+2) pyproject.toml -- Package manager for scripts  
 
-3) Python script label_cp_im.py -- This takes saved images of nuclei and cilia from the pipeline, and numbers them based on their centres in order to visualize the pipeline.
+3) preprocess_image_names.py -- Preprocess image names from CellProfiler pipeline output into standard format for scripts 
 
-4) Python script visualize.py -- This does the same thing as above, but superimposes the cilia numbers on the nuclei pictures and draws a line from the closest cilia to the closest cell to visualize the centertocenter script.  
+4) size_filter.py -- Filters out centrioles/nuclei that are too big
 
-5) Python script calc.py -- This calculates mean and standard deviation of the columns 'ImageNumber', 'AreaShape_Area', 'AreaShape_MajorAxisLength', and 'AreaShape_MinorAxisLength' for both nuclei and cilia and outputs it as a dictionary.  
+5) centertocenter.py -- Maps nuclei to centrioles in a 1:1 or 2 ratio, and centrioles to cilia in a 1:1 ratio
+
+6) label_cp_im.py -- Visualizer for output of the CellProfiler pipeline
+
+7) visualize.py -- Visualizer for output of the centertocenter.py script  
+
+8) calc.py -- Calculates mean and standard deviation of area, length, and width columns 
+
+9) centrioles_without_cells.py -- Visualizes the centrioles that were not assigned to a cell, and where they are in relation to the cell they were the closest to
+
+10) merge_cilia.py -- Merges cilia into clusters according to DBSCAN algorithm
