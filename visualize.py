@@ -3,12 +3,12 @@ import csv
 from PIL import Image, ImageDraw, ImageFont
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Centriole.csv'
-im_csv_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/'
-c2c_output_path='/Users/sneha/Desktop/c2coutput.csv'
-output_im_dir_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/visualizer/'
+cell_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/ciliaNov11/c2c_output/new_cilia.csv'
+centriole_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Centriole.csv'
+im_csv_dir_path='/Users/sneha/Desktop/ciliaNov11/im_output/'
+c2c_output_path='/Users/sneha/Desktop/ciliaNov11/c2c_output/c2coutput.csv'
+output_im_dir_path='/Users/sneha/Desktop/ciliaNov11/visualizer/'
 centriole=True # is centriole included here
 ################################# TO CHANGE #################################
 

@@ -14,7 +14,7 @@ centriole=None # True or None
 
 # Makes paths for us to be able to find init imgs / for images to go 
 def make_paths(num, channel, label): 
-    path = im_csv_dir_path + channel_dict[channel] + f"{num:04}" + ('_LABELED.tiff' if label else '.tiff')
+    path = (output_im_dir_path if label else im_csv_dir_path) + 'CombinedIm' + f"{num:04}" + ('_LABELED.tiff' if label else '.tiff')
     print(path)
     return path
 
@@ -40,21 +40,25 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
     return cell_list, cilia_list, centriole_list, cilia_list_num
 
 # Labels image
-def label_im(coordinate_list, im, num, channel, li_num=None):
+def label_im(coordinate_list, coordinates_2, im, num, channel, li_num):
     img = Image.open(im)
 
-    if li_num:
-        print("hi")
     # Writes number onto image at center 
     for i, val in enumerate(coordinate_list):
         x_coord = val[0]
         y_coord = val[1]
         d = ImageDraw.Draw(img)
-        if li_num:
-            write_num = str(int(li_num[i]))
-        else:
-            write_num = str(i+1)
-        d.text((x_coord, y_coord), write_num, fill=(255,255,255,255))
+        write_num = str(i+1)
+        d.text((x_coord, y_coord), write_num, fill=(255))
+
+    for i, val in enumerate(coordinates_2):
+        x_coord = val[0]
+        y_coord = val[1]
+        d = ImageDraw.Draw(img)
+        write_num = str(int(li_num[i]))
+        d.text((x_coord, y_coord), write_num, fill=(100))
+
+    
     
     path = make_paths(num, channel, True)
     img.save(path)
@@ -80,11 +84,12 @@ def batch_script():
     for num in range(1, num_im+1):
         cell_list, cilia_list, centriole_list, cilia_list_num = make_lists(num, grouped_cell, grouped_cilia, grouped_centriole)
         
-        im_path_cell=make_paths(num, '01', False)
-        label_im(cell_list, im_path_cell, num, '01')
+        im_path=make_paths(num, '01', False)
+        label_im(cell_list, cilia_list, im_path, num, '01', cilia_list_num)
+        # label_im(cell_list, im_path_cell, num, '01')
 
-        im_path_cilia=make_paths(num, '02', False)
-        label_im(cilia_list, im_path_cilia, num, '02', cilia_list_num)
+        # im_path_cilia=make_paths(num, '02', False)
+        # label_im(cilia_list, im_path_cilia, num, '02', cilia_list_num)
 
         if centriole:
             im_path_centriole=make_paths(num, '03', False)

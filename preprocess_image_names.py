@@ -2,7 +2,7 @@ from os import listdir, rename
 from os.path import isfile, join
 import re 
 
-im_csv_dir_path='/Users/sneha/Desktop/sample_outputOCT25/ch01'
+im_csv_dir_path='/Users/sneha/Desktop/ciliaNov11/im_output'
 
 pattern=re.compile('(?P<num>[^_]*)_ch(?P<channel>[^\.]*)')
 

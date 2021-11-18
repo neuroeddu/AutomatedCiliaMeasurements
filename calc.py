@@ -1,10 +1,10 @@
 import pandas as pd
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cell.csv'
-cilia_csv_path='/Users/sneha/Desktop/mni/cilia-output/MyExpt_Cilia.csv'
+cell_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Cilia.csv'
 fields = ['ImageNumber', 'AreaShape_Area', 'AreaShape_MajorAxisLength', 'AreaShape_MinorAxisLength']
-csv_path ='/Users/sneha/Desktop/mni/tester.csv'
+csv_path ='/Users/sneha/Desktop/tester.csv'
 ################################# TO CHANGE #################################
 
 def main(): 

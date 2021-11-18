@@ -1,14 +1,16 @@
 import csv
 import pandas as pd
-from math import sqrt
+from math import sqrt, isnan
 import operator
+import numpy as np
+from pandas.core.frame import DataFrame
 from shapely.geometry import Polygon, LineString, MultiPoint
 from shapely.ops import cascaded_union, unary_union
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/mni/cilia_09:12:2021/im_output/MyExpt_Centriole.csv'
+cell_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Cilia.csv'
+centriole_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Centriole.csv'
 output_csv_dir_path='/Users/sneha/Desktop'
 ################################# TO CHANGE #################################
 
@@ -125,59 +127,66 @@ def merge_two_paintings(old_x_index, x_index, x_list, merged_list, im_num):
 def remove_dups_dict(x_to_y, x_list, y_list, x_spatial_coordinates, im_num, merge_threshold=float('inf')):
     merged_list=[]
     y_to_x_visitation_dict = {}
+    cent_to_remove=set()
     for x_index, x in enumerate(x_to_y):
 
         if x["y"] in y_to_x_visitation_dict: # if cell alr in visited list of cells
             old_x_index = y_to_x_visitation_dict[x["y"]]
             old_x = x_to_y[old_x_index]
             old_x_x, old_x_y=x_list[old_x_index]
-            new_x_x, new_x_y=x_list[x_index]
+            try:
+                new_x_x, new_x_y=x_list[x_index]
+            except:
+                raise
             result = False
             old_x_coords=x_spatial_coordinates[old_x_index]
             new_x_coords=x_spatial_coordinates[x_index]
 
-            for coord1 in old_x_coords:
-                for coord2 in new_x_coords:
-                    if abs(coord1-coord2)<1:
-                        result = True
-                        break
-                    else:
-                        continue
-                break
+            # for coord1 in old_x_coords:
+            #     for coord2 in new_x_coords:
+            #         if abs(coord1-coord2)<0:
+            #             result = True
+            #             break
+            #         else:
+            #             continue
+            #     break
 
-            if result:
-                new_center = merge_two_paintings(old_x_index, x_index, x_spatial_coordinates, merged_list, im_num)
-                y_to_update=x["y"]
-                y_x, y_y = y_list[y_to_update-1]
-                path = sqrt(pow((old_x_x - old_x_y), 2) + pow((new_x_x - new_x_y), 2)) 
-                old_x["path_length"] = path
-                x["path_length"] = -1.00
-                x["y"] = -2
-                continue
+            # if result:
+            #     new_center = merge_two_paintings(old_x_index, x_index, x_spatial_coordinates, merged_list, im_num)
+            #     y_to_update=x["y"]
+            #     y_x, y_y = y_list[y_to_update-1]
+            #     path = sqrt(pow((old_x_x - new_x_x), 2) + pow((old_x_y - new_x_y), 2)) 
+            #     old_x["path_length"] = path
+            #     x["path_length"] = -1.00
+            #     x["y"] = -2
+            #    continue
             if x["path_length"] < old_x["path_length"]: # if cur path length < path length of prev 
                 old_x["path_length"] = 0.00 # set the prev one's path length to 0 and cell to none
                 old_x["y"] = -1
+                cent_to_remove.add(old_x_index)
                 y_to_x_visitation_dict[x["y"]] = x_index
 
             else: # if path length of prev is better / same, keep prev 
                 x["path_length"] = 0.00
                 x["y"] = -1
+                cent_to_remove.add(x_index)
                 
         else:
             y_to_x_visitation_dict[x["y"]] = x_index
     
-    return x_to_y, merged_list
+    return x_to_y, merged_list, cent_to_remove
 
 # remove some duplicates to ensure 1:1 or 2 relation between y : x 
 def remove_some_dups_dict(x_to_y, y_list):
     y_to_x = [
-    {
-        "x1": None, # The index of the current closest cilia
-        "x2": None # The index of the second closest cilia
-    }
-    for y in range(len(y_list))
+        {
+            "x1": None, # The index of the current closest cilia
+            "x2": None # The index of the second closest cilia
+        }
+        for y in range(len(y_list))
     ]
 
+    cent_to_remove=set()
 
     for x_index, x in enumerate(x_to_y):
         cur_y=x["y"]-1
@@ -203,11 +212,13 @@ def remove_some_dups_dict(x_to_y, y_list):
             if old_x["path_length"] < x["path_length"]:
                 x["path_length"] = 0.00
                 x["y"] = -1
+                cent_to_remove.add(x_index)
             
             # case 3b: cilia2 path length>new cilia, cilia2's path length/cell r 0, check whether new cilia pl>cilia1
             else:
                 old_x["path_length"] = 0.00 # set the prev one's path length to 0 and cell to none
                 old_x["y"] = -1
+                cent_to_remove.add(old_x_index)
                 old_x_index = y_to_x[cur_y]["x1"]
                 old_x = x_to_y[old_x_index]
 
@@ -221,10 +232,20 @@ def remove_some_dups_dict(x_to_y, y_list):
                     y_to_x[cur_y]["x1"] = x_index
                     y_to_x[cur_y]["x2"] = old_x_index
         
-    return x_to_y
+    return x_to_y, cent_to_remove
+
+def remove_centrioles(centriole_list, cent_to_remove, num):
+    new_cent_list=[]
+    idx_li=[]
+    for idx, cent in enumerate(centriole_list):
+        if idx not in cent_to_remove:
+            new_cent_list.append(cent)
+            idx_li.append([num, idx])
+
+    return new_cent_list, idx_li
 
 
-def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num_im):
+def combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num_im, real_idx_cent):
 
     c2c_output = [
         {
@@ -238,25 +259,118 @@ def combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num_im)
         for num in range(len(centriole_to_cell_no_dups))
     ]
 
-    for num in range(len(centriole_to_cell_no_dups)):
-        c2c_output[num]['path_length_cell'] = centriole_to_cell_no_dups[num]['path_length']
-        c2c_output[num]['cell'] = centriole_to_cell_no_dups[num]['y']
-        c2c_output[num]['path_length_cilia'] = centriole_to_cilia_no_dups[num]['path_length']
-        c2c_output[num]['cilia'] = centriole_to_cilia_no_dups[num]['y']
+    cent_to_cilia = [
+        {
+            "path_length": float('inf'), # The length of the shortest path
+            "y": None # The index of the cell to which the shortest path corresponds
+        }
+        for _ in cilia_to_centriole_no_dups
+        #for _ in range(max(cent_info['y'] for cent_info in cilia_to_centriole_no_dups)+1)
+    ]
+    
+    already_visited_nuc=set()
+    for idx, cilia_info in enumerate(cilia_to_centriole_no_dups):
+
+        cent_to_cilia[cilia_info['y']-1]['path_length']=cilia_info['path_length']
+        cent_to_cilia[cilia_info['y']-1]['y']=idx
+
+    for index, num in enumerate(real_idx_cent):
+
+        c2c_output[index]['centriole']=num[1]+1
+        c2c_output[index]['path_length_cell'] = centriole_to_cell_no_dups[num[1]]['path_length']
+        c2c_output[index]['cell'] = centriole_to_cell_no_dups[num[1]]['y']
+
+        if cent_to_cilia[index]['y'] is None:
+            continue
+        c2c_output[index]['path_length_cilia'] = cent_to_cilia[index]['path_length']
+        c2c_output[index]['cilia'] = cent_to_cilia[index]['y']+1
 
     return c2c_output
 
+def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
+    c2c_output_formatted = [
+        {
+            'num': num_im,
+            'cell': None,
+            'centrioles':[],
+            'path_length_centrioles':[],
+            'path_length_cilia': float('inf'),
+            'cilia': None,
+        }
+        for num in range(len(c2c_output))
+    ]
+
+    df = DataFrame(c2c_output)
+    print(df.columns)
+    grouped=df.groupby("cell").agg(
+        cell=pd.NamedAgg(column="cell", aggfunc=list),
+        centriole_li=pd.NamedAgg(column="centriole", aggfunc=list),
+        path_length_centriole=pd.NamedAgg(column="path_length_cell", aggfunc=list), 
+        cilia_li=pd.NamedAgg(column="cilia", aggfunc=list), 
+        path_length_cilia=pd.NamedAgg(column="path_length_cilia", aggfunc=list)
+    )
+
+    print(grouped.head(n=5))
+    print(len(grouped.values))
+    #grouped=df.groupby('cell').agg(centriole_list=pd.NamedAgg(column="centriole", aggfunc="list"{'centriole':list, 'path_length_cell':list, 'cilia':list, 'path_length_cilia':list })
+    for x, item in enumerate(grouped.values):
+        cilia=item[3]
+        print(item[0])
+        cell=int(item[0][0])
+        print(cell)
+        c2c_output_formatted[cell]['cell']=cell
+        c2c_output_formatted[cell]['centrioles']=item[1]
+        c2c_output_formatted[cell]['path_length_centrioles']=item[2]
+        nuc_x, nuc_y=nuc_list[int(cell-1)]
+        if len(cilia)>1:
+            if isnan(cilia[1]) and isnan(cilia[0]):
+                continue
+            if isnan(cilia[1]) and not isnan(cilia[0]):
+                c2c_output_formatted[cell]['cilia']=item[2][0]
+                cilia1_x, cilia1_y=cilia_list[int(cilia[0])-1]
+                dist = sqrt(pow((cilia1_x - nuc_x), 2) + pow((cilia1_y - nuc_y), 2))
+                c2c_output_formatted[cell]['path_length_cilia']=dist
+
+            elif isnan(cilia[0]) and not isnan(cilia[1]):
+                c2c_output_formatted[cell]['cilia']=item[2][1]
+                try:
+                    cilia2_x, cilia2_y=cilia_list[int(cilia[1])-1]
+                except:
+                    raise
+                dist= sqrt(pow((cilia2_x - nuc_x), 2) + pow((cilia2_y - nuc_y), 2))
+                c2c_output_formatted[cell]['path_length_cilia']=dist
+                
+            else:
+                cilia1_x, cilia1_y=cilia_list[int(cilia[0])-1]
+                cilia2_x, cilia2_y=cilia_list[int(cilia[1])-1]
+
+                dist1= sqrt(pow((cilia1_x - nuc_x), 2) + pow((cilia1_y - nuc_y), 2))
+                dist2= sqrt(pow((cilia2_x - nuc_x), 2) + pow((cilia2_y - nuc_y), 2))
+
+                min_cil= min((dist1, cilia[0]), (dist2, cilia[1]))
+
+                c2c_output_formatted[cell]['cilia']=min_cil[0]
+                c2c_output_formatted[cell]['path_length_cilia']=min_cil[1]
+
+        else:
+            c2c_output_formatted[cell]['cilia']=item[2]
+            c2c_output_formatted[cell]['path_length_cilia']=item[3]
+
+    return c2c_output_formatted
+    
 def convert_dict_to_csv(c2c_output, output_path):
     df = pd.DataFrame.from_dict(c2c_output)
+    df=df.dropna()
     cols = df.columns.tolist()
-    df = df[['num', 'cell', 'path_length_cell', 'centriole', 'path_length_cilia', 'cilia']]
+    df = df[['num', 'cell', 'path_length_centrioles', 'centrioles', 'path_length_cilia', 'cilia']]
     df.to_csv(path_or_buf=output_path, header=["ImageNumber", "Nucleus", "PathLengthCentriole", "Centriole", "PathLengthCilia", "Cilia"], index=False)
 
 def make_new_cilia_csv(cilia_output, output_path):
     df=pd.DataFrame(cilia_output)
-    df = df.set_axis(['Location_Center_X', 'Location_Center_Y', 'Cilia', 'ImageNum'], axis=1)
-    df = df[['ImageNum', 'Cilia', 'Location_Center_X', 'Location_Center_Y']]
+    df = df.set_axis(['Location_Center_X', 'Location_Center_Y', 'Cilia', 'ImageNumber'], axis=1)
+    df = df[['ImageNumber', 'Cilia', 'Location_Center_X', 'Location_Center_Y']]
     df.to_csv(path_or_buf=output_path)
+
 # TODO Add this func that will merge the merged cilia list and the normal cilia list
 def merge_dfs(cilia_only_x_y, merged_cilia_list, num):
     set_of_cilias={cilia[1] for cilia in merged_cilia_list}
@@ -276,11 +390,10 @@ def merge_dfs(cilia_only_x_y, merged_cilia_list, num):
     new_df=pd.DataFrame(to_add, columns=['Location_Center_X', 'Location_Center_Y', 'index_cilia'])
     df_no_merged=df_no_merged.append(new_df)
     df_no_merged=df_no_merged.sort_values(by=['index_cilia'])
-    df_no_merged['ImageNum']=num
+    df_no_merged['ImageNumber']=num
     
     return df_no_merged.values.tolist()
-
-
+        
 def main(): 
     fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
     fields_cilia = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y', 'AreaShape_BoundingBoxMaximum_X', 'AreaShape_BoundingBoxMaximum_Y', 'AreaShape_BoundingBoxMinimum_X', 'AreaShape_BoundingBoxMinimum_Y']
@@ -299,35 +412,47 @@ def main():
     c2c_output = []
     merged_list_full=[]
     merged_df_full=[]
+    # TODO CHANGE NEW CENT, NEW CILIA TO 1 INDEXED INSTEAD OF 0 INDEXED
+    new_cent=[]
+    new_cilia=[]
     for num in range(1, num_im+1):
         cell_list, centriole_list = make_lists(num, grouped_cell, grouped_centriole)
         centriole_to_cell = which_x_closest(cell_list, centriole_list) 
-        centriole_to_cell_no_dups = remove_some_dups_dict(centriole_to_cell, cell_list)
-        #cell_to_centriole = cell_to_all_cilia(centriole_to_cell, cell_list)
+        centriole_to_cell_no_dups, cent_to_remove = remove_some_dups_dict(centriole_to_cell, cell_list)
+        # here : pass in cent to remove, list of 
+        new_cent_list, idx_li1=remove_centrioles(centriole_list, cent_to_remove, num)
+        new_cent+=idx_li1
+        # TODO this is redundant make new make_lists func
         cilia_list, centriole_list = make_lists(num, grouped_cilia, grouped_centriole)
-        centriole_to_cilia = which_x_closest(centriole_list, cilia_list) 
-
+        cilia_to_centriole = which_x_closest(new_cent_list, cilia_list) 
         im_df = grouped_cilia_spatial.get_group(num) 
         im_df.drop('ImageNumber', axis=1, inplace=True)
         cilia_spatial = im_df.values.tolist()
+        cilia_to_centriole_no_dups, merged_list, cilia_to_remove = remove_dups_dict(cilia_to_centriole, cilia_list, new_cent_list, cilia_spatial, num)
+        new_cilia_list, idx_li2=remove_centrioles(cilia_list, cilia_to_remove, num)
+        new_cilia+=idx_li2
 
-        
-        centriole_to_cilia_no_dups, merged_list = remove_dups_dict(centriole_to_cilia, cilia_list, centriole_list, cilia_spatial, num)
 
-        c2c_output_part=combine_dicts(centriole_to_cell_no_dups, centriole_to_cilia_no_dups, num)
-
+        c2c_output_part=combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num, idx_li1)
+        c2c_output_format = convert_format_output(c2c_output_part, num, cell_list, cilia_list)
         im_df = grouped_cilia.get_group(num) 
         im_df.drop('ImageNumber', axis=1, inplace=True)
         df_merged=merge_dfs(im_df, merged_list, num) 
         merged_df_full+=df_merged
-        c2c_output+=c2c_output_part
+        c2c_output+=c2c_output_format
         merged_list_full+=merged_list
      
     output_path=output_csv_dir_path + '/c2coutput.csv' 
     df = pd.DataFrame(merged_list_full)
+    just_merged_path=output_csv_dir_path+'/merged_cilia_info.csv'
     #output_path_merged=
-    make_new_cilia_csv(merged_df_full, '/Users/sneha/Desktop/plswork3.csv')
-    df.to_csv('/Users/sneha/Desktop/plswork.csv')
+    df2 = pd.DataFrame(new_cent)
+    df3 = pd.DataFrame(new_cilia)
+    output_cent=output_csv_dir_path+'/new_cent.csv'
+    output_cilia=output_csv_dir_path+'/new_cilia.csv'
+    # make_new_cilia_csv(merged_df_full, output_cilia)
+    df2.to_csv(output_cent)
+    df3.to_csv(output_cilia)
 
     convert_dict_to_csv(c2c_output, output_path)
 
