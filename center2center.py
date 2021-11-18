@@ -412,7 +412,6 @@ def main():
     c2c_output = []
     merged_list_full=[]
     merged_df_full=[]
-    # TODO CHANGE NEW CENT, NEW CILIA TO 1 INDEXED INSTEAD OF 0 INDEXED
     new_cent=[]
     new_cilia=[]
     for num in range(1, num_im+1):
@@ -421,7 +420,8 @@ def main():
         centriole_to_cell_no_dups, cent_to_remove = remove_some_dups_dict(centriole_to_cell, cell_list)
         # here : pass in cent to remove, list of 
         new_cent_list, idx_li1=remove_centrioles(centriole_list, cent_to_remove, num)
-        new_cent+=idx_li1
+        idx_li_1_indexed=[idx+1 for idx in idx_li1]
+        new_cent+=idx_li_1_indexed
         # TODO this is redundant make new make_lists func
         cilia_list, centriole_list = make_lists(num, grouped_cilia, grouped_centriole)
         cilia_to_centriole = which_x_closest(new_cent_list, cilia_list) 
@@ -430,7 +430,8 @@ def main():
         cilia_spatial = im_df.values.tolist()
         cilia_to_centriole_no_dups, merged_list, cilia_to_remove = remove_dups_dict(cilia_to_centriole, cilia_list, new_cent_list, cilia_spatial, num)
         new_cilia_list, idx_li2=remove_centrioles(cilia_list, cilia_to_remove, num)
-        new_cilia+=idx_li2
+        idx_li_2_1_indexed=[idx+1 for idx in idx_li2]
+        new_cilia+=idx_li_2_1_indexed
 
 
         c2c_output_part=combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num, idx_li1)
