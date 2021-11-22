@@ -8,10 +8,10 @@ from shapely.geometry import Polygon, LineString, MultiPoint
 from shapely.ops import cascaded_union, unary_union
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Centriole.csv'
-output_csv_dir_path='/Users/sneha/Desktop'
+cell_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
+centriole_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
+output_csv_dir_path='/Users/sneha/Desktop/ciliaNov22/c2c_output'
 ################################# TO CHANGE #################################
 
 def helper_make_lists(im_num, grouped):
@@ -245,7 +245,7 @@ def remove_centrioles(centriole_list, cent_to_remove, num):
     return new_cent_list, idx_li
 
 
-def combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num_im, real_idx_cent):
+def combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num_im, real_idx_cent, cent_max):
 
     c2c_output = [
         {
@@ -264,14 +264,16 @@ def combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num_im,
             "path_length": float('inf'), # The length of the shortest path
             "y": None # The index of the cell to which the shortest path corresponds
         }
-        for _ in cilia_to_centriole_no_dups
+        for _ in range(cent_max+1)
         #for _ in range(max(cent_info['y'] for cent_info in cilia_to_centriole_no_dups)+1)
     ]
     
     already_visited_nuc=set()
     for idx, cilia_info in enumerate(cilia_to_centriole_no_dups):
-
-        cent_to_cilia[cilia_info['y']-1]['path_length']=cilia_info['path_length']
+        try:
+            cent_to_cilia[cilia_info['y']-1]['path_length']=cilia_info['path_length']
+        except:
+            raise
         cent_to_cilia[cilia_info['y']-1]['y']=idx
 
     for index, num in enumerate(real_idx_cent):
@@ -297,7 +299,7 @@ def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
             'path_length_cilia': float('inf'),
             'cilia': None,
         }
-        for num in range(len(c2c_output))
+        for num in range(len(nuc_list)+1)
     ]
 
     df = DataFrame(c2c_output)
@@ -310,14 +312,16 @@ def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
         path_length_cilia=pd.NamedAgg(column="path_length_cilia", aggfunc=list)
     )
 
-    print(grouped.head(n=5))
-    print(len(grouped.values))
     #grouped=df.groupby('cell').agg(centriole_list=pd.NamedAgg(column="centriole", aggfunc="list"{'centriole':list, 'path_length_cell':list, 'cilia':list, 'path_length_cilia':list })
     for x, item in enumerate(grouped.values):
         cilia=item[3]
         print(item[0])
         cell=int(item[0][0])
         print(cell)
+        if cell==11:
+            print()
+        print(len(nuc_list))
+        print(num_im)
         c2c_output_formatted[cell]['cell']=cell
         c2c_output_formatted[cell]['centrioles']=item[1]
         c2c_output_formatted[cell]['path_length_centrioles']=item[2]
@@ -326,13 +330,13 @@ def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
             if isnan(cilia[1]) and isnan(cilia[0]):
                 continue
             if isnan(cilia[1]) and not isnan(cilia[0]):
-                c2c_output_formatted[cell]['cilia']=item[2][0]
+                c2c_output_formatted[cell]['cilia']=item[3][0]
                 cilia1_x, cilia1_y=cilia_list[int(cilia[0])-1]
                 dist = sqrt(pow((cilia1_x - nuc_x), 2) + pow((cilia1_y - nuc_y), 2))
                 c2c_output_formatted[cell]['path_length_cilia']=dist
 
             elif isnan(cilia[0]) and not isnan(cilia[1]):
-                c2c_output_formatted[cell]['cilia']=item[2][1]
+                c2c_output_formatted[cell]['cilia']=item[3][1]
                 try:
                     cilia2_x, cilia2_y=cilia_list[int(cilia[1])-1]
                 except:
@@ -349,12 +353,12 @@ def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
 
                 min_cil= min((dist1, cilia[0]), (dist2, cilia[1]))
 
-                c2c_output_formatted[cell]['cilia']=min_cil[0]
-                c2c_output_formatted[cell]['path_length_cilia']=min_cil[1]
+                c2c_output_formatted[cell]['cilia']=min_cil[1]
+                c2c_output_formatted[cell]['path_length_cilia']=min_cil[0]
 
         else:
-            c2c_output_formatted[cell]['cilia']=item[2]
-            c2c_output_formatted[cell]['path_length_cilia']=item[3]
+            c2c_output_formatted[cell]['cilia']=item[3]
+            c2c_output_formatted[cell]['path_length_cilia']=item[4]
 
     return c2c_output_formatted
     
@@ -420,7 +424,7 @@ def main():
         centriole_to_cell_no_dups, cent_to_remove = remove_some_dups_dict(centriole_to_cell, cell_list)
         # here : pass in cent to remove, list of 
         new_cent_list, idx_li1=remove_centrioles(centriole_list, cent_to_remove, num)
-        idx_li_1_indexed=[idx+1 for idx in idx_li1]
+        idx_li_1_indexed=[[idx[0],(idx[1]+1)] for idx in idx_li1]
         new_cent+=idx_li_1_indexed
         # TODO this is redundant make new make_lists func
         cilia_list, centriole_list = make_lists(num, grouped_cilia, grouped_centriole)
@@ -430,11 +434,11 @@ def main():
         cilia_spatial = im_df.values.tolist()
         cilia_to_centriole_no_dups, merged_list, cilia_to_remove = remove_dups_dict(cilia_to_centriole, cilia_list, new_cent_list, cilia_spatial, num)
         new_cilia_list, idx_li2=remove_centrioles(cilia_list, cilia_to_remove, num)
-        idx_li_2_1_indexed=[idx+1 for idx in idx_li2]
+        idx_li_2_1_indexed=[[idx[0],(idx[1]+1)] for idx in idx_li2]
         new_cilia+=idx_li_2_1_indexed
 
 
-        c2c_output_part=combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num, idx_li1)
+        c2c_output_part=combine_dicts(centriole_to_cell_no_dups, cilia_to_centriole_no_dups, num, idx_li1, len(centriole_list))
         c2c_output_format = convert_format_output(c2c_output_part, num, cell_list, cilia_list)
         im_df = grouped_cilia.get_group(num) 
         im_df.drop('ImageNumber', axis=1, inplace=True)
