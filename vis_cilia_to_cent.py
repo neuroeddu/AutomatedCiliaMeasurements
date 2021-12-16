@@ -7,7 +7,7 @@ cell_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Nuc
 cilia_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
 centriole_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
 im_csv_dir_path='/Users/sneha/Desktop/ciliaNov22/im_output/'
-c2c_output_path='/Users/sneha/Desktop/ciliaNov22/c2c_output/c2coutput.csv'
+c2c_output_path='/Users/sneha/Desktop/ciliaNov22/cent2cilia.csv'
 output_im_dir_path='/Users/sneha/Desktop/ciliaNov/visualizer/'
 channel_dict={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
 ################################# TO CHANGE #################################
@@ -40,7 +40,7 @@ grouped_cell = cell_df.groupby(['ImageNumber'])
 cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
 grouped_cilia = cilia_df.groupby(['ImageNumber'])
 
-fields_c2c = ['ImageNumber','Cilia', 'Centriole', 'Nucleus']
+fields_c2c = ['ImageNumber','Cilia', 'Centriole']
 associate_df = pd.read_csv(c2c_output_path, skipinitialspace=True, usecols=fields_c2c)
 grouped_associates= associate_df.groupby(['ImageNumber'])
 
@@ -49,9 +49,6 @@ centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fi
 grouped_centriole = centriole_df.groupby(['ImageNumber'])
 
 for num in range(1, num_im+1):
-    df_cell = grouped_cell.get_group(num) 
-    df_cell.drop('ImageNumber', axis=1, inplace=True)
-    new_list_cell = df_cell.values.tolist()
 
     df_centriole = grouped_centriole.get_group(num) 
     df_centriole.drop('ImageNumber', axis=1, inplace=True)
@@ -65,7 +62,7 @@ for num in range(1, num_im+1):
     df_associates.drop('ImageNumber', axis=1, inplace=True)
     new_list_associates = df_associates.values.tolist()
 
-    path=(im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + '.tiff')
+    path=(im_csv_dir_path + 'CentrioleOverlay' + f"{num:04}" + '.tiff')
     img = Image.open(path)
 
     for x, thing in enumerate(new_list_associates):
@@ -73,15 +70,10 @@ for num in range(1, num_im+1):
         visited_cent=set()
         cur_nuc=thing[0]
         cur_cent=thing[1]
-        cur_cent = cur_cent.strip('[')
-        cur_cent = cur_cent.strip(']')
-        if not 'nan' in cur_cent:
-            if ',' in cur_cent:
-                split_cent=cur_cent.split(', ')
-                visited_nuc, visited_cent = draw_things(cur_nuc, visited_nuc, float(split_cent[0]), visited_cent, img, new_list_cell, new_list_centriole)
-                visited_nuc, visited_cent = draw_things(cur_nuc, visited_nuc, float(split_cent[1]), visited_cent, img, new_list_cell, new_list_centriole)
-            else:
-                visited_nuc, visited_cent = draw_things(cur_nuc, visited_nuc, float(cur_cent), visited_cent, img, new_list_cell, new_list_centriole)
 
-    pathnew='/Users/sneha/Desktop/ciliaNov22/labeled_im_FULL/nuc_to_cilia/nuc_to_cilia_'+ f"{num:04}" + '.tiff'
+        if cur_nuc==195:
+            print()
+        visited_nuc, visited_cent = draw_things(cur_nuc, visited_nuc, float(cur_cent), visited_cent, img, new_list_cilia, new_list_centriole)
+
+    pathnew='/Users/sneha/Desktop/ciliaNov22/labeled_im_FULL/cilia_to_cent/cilia_to_cent_'+ f"{num:04}" + '.tiff'
     img.save(pathnew)
