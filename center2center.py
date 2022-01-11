@@ -58,8 +58,6 @@ def which_x_closest(y_list, x_list, cutoff = float('inf')):
         for i, y in enumerate(y_list):
             x_y, y_y = y
             for j, x in enumerate(x_list):
-                if j==194 and i==88:
-                    print()
                 x_x, y_x = x
                 result = sqrt(pow((x_x - x_y), 2) + pow((y_x - y_y), 2))
                 
@@ -309,6 +307,8 @@ def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
         cell=int(item[0][0])
         c2c_output_formatted[cell]['cell']=cell
         c2c_output_formatted[cell]['centrioles']=item[1]
+        if item[1] is None:
+            c2c_output_formatted[cell]['centrioles']=-2
         c2c_output_formatted[cell]['path_length_centrioles']=item[2]
         nuc_x, nuc_y=nuc_list[int(cell-1)]
         if len(cilia)>1:
@@ -344,6 +344,15 @@ def convert_format_output(c2c_output, num_im, nuc_list, cilia_list):
         else:
             c2c_output_formatted[cell]['cilia']=item[3]
             c2c_output_formatted[cell]['path_length_cilia']=item[4]
+
+        if isinstance(c2c_output_formatted[cell]['cilia'], list):
+            c2c_output_formatted[cell]['cilia']=c2c_output_formatted[cell]['cilia'][0]
+        
+        if isnan(c2c_output_formatted[cell]['cilia']):
+            c2c_output_formatted[cell]['cilia']=-2
+            c2c_output_formatted[cell]['path_length_cilia']=-2
+        else:
+            c2c_output_formatted[cell]['cilia']=int(c2c_output_formatted[cell]['cilia'])
 
     return c2c_output_formatted
     
