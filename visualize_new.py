@@ -3,32 +3,32 @@ import csv
 from PIL import Image, ImageDraw, ImageFont
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
-im_csv_dir_path='/Users/sneha/Desktop/ciliaNov22/im_output/'
-c2c_output_path='/Users/sneha/Desktop/ciliaNov22/c2c_output/c2coutput.csv'
-output_im_dir_path='/Users/sneha/Desktop/ciliaNov/visualizer/'
+cell_csv_path='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Nucleus.csv'
+cilia_csv_path='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Cilia.csv'
+centriole_csv_path='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Centriole.csv'
+im_csv_dir_path='/Users/sneha/Desktop/ciliaJan13/combinedim/'
+c2c_output_path='/Users/sneha/Desktop/ciliaJan22/c2coutputnone/c2coutput.csv'
+output_im_dir_path='/Users/sneha/Desktop/ciliaJan22/visualizernone/'
 channel_dict={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
 ################################# TO CHANGE #################################
 
 def draw_things(cur_nuc, visited_nuc, cur_cent, visited_cent, img, new_list_cell, new_list_centriole):
-    if int(cur_nuc) not in visited_nuc and cur_cent not in visited_cent:
-            nuc_x = new_list_cell[int(cur_nuc)-1][0]
-            nuc_y = new_list_cell[int(cur_nuc)-1][1]
+    #if int(cur_nuc) not in visited_nuc and cur_cent not in visited_cent:
+    nuc_x = new_list_cell[int(cur_nuc)-1][0]
+    nuc_y = new_list_cell[int(cur_nuc)-1][1]
 
-            try:
-                cent_x=new_list_centriole[int(cur_cent)-1][0]
-            except:
-                raise
-            cent_y=new_list_centriole[int(cur_cent)-1][1]
-            d = ImageDraw.Draw(img)
-            d.text((int(nuc_x), int(nuc_y)), str(cur_nuc), fill=(255,255,255,255))
-            d.text((int(cent_x), int(cent_y)), str(cur_cent), fill=(255,0,0,255))
-            line_xy = [(int(nuc_x), int(nuc_y)), (int(cent_x), int(cent_y))]
-            d.line(line_xy, fill=(255,255,255,255))
-            visited_cent.add(cur_cent)
-            visited_nuc.add(int(cur_nuc))
+    try:
+        cent_x=new_list_centriole[int(cur_cent)-1][0]
+    except:
+        raise
+    cent_y=new_list_centriole[int(cur_cent)-1][1]
+    d = ImageDraw.Draw(img)
+    d.text((int(nuc_x), int(nuc_y)), str(cur_nuc), fill=(0,100,0))
+    d.text((int(cent_x), int(cent_y)), str(cur_cent), fill=(128,0,0))
+    line_xy = [(int(nuc_x), int(nuc_y)), (int(cent_x), int(cent_y))]
+    d.line(line_xy, fill=(255,255,255,255))
+    visited_cent.add(cur_cent)
+    visited_nuc.add(int(cur_nuc))
     return visited_nuc, visited_cent
 
 fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
@@ -40,7 +40,7 @@ grouped_cell = cell_df.groupby(['ImageNumber'])
 cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
 grouped_cilia = cilia_df.groupby(['ImageNumber'])
 
-fields_c2c = ['ImageNumber','Cilia', 'Centriole', 'Nucleus']
+fields_c2c = ['ImageNumber','Nucleus', 'Centriole']
 associate_df = pd.read_csv(c2c_output_path, skipinitialspace=True, usecols=fields_c2c)
 grouped_associates= associate_df.groupby(['ImageNumber'])
 
@@ -57,15 +57,15 @@ for num in range(1, num_im+1):
     df_centriole.drop('ImageNumber', axis=1, inplace=True)
     new_list_centriole = df_centriole.values.tolist()
 
-    df_cilia = grouped_cilia.get_group(num) 
-    df_cilia.drop('ImageNumber', axis=1, inplace=True)
-    new_list_cilia = df_cilia.values.tolist()
+    # df_cilia = grouped_cilia.get_group(num) 
+    # df_cilia.drop('ImageNumber', axis=1, inplace=True)
+    # new_list_cilia = df_cilia.values.tolist()
 
     df_associates = grouped_associates.get_group(num) 
     df_associates.drop('ImageNumber', axis=1, inplace=True)
     new_list_associates = df_associates.values.tolist()
 
-    path=(im_csv_dir_path + 'NucleusOverlay' + f"{num:04}" + '.tiff')
+    path=(im_csv_dir_path + 'CombinedIm' + f"{num:04}" + '.tiff')
     img = Image.open(path)
 
     for x, thing in enumerate(new_list_associates):
@@ -83,5 +83,5 @@ for num in range(1, num_im+1):
             else:
                 visited_nuc, visited_cent = draw_things(cur_nuc, visited_nuc, float(cur_cent), visited_cent, img, new_list_cell, new_list_centriole)
 
-    pathnew='/Users/sneha/Desktop/ciliaNov22/labeled_im_FULL/nuc_to_cilia/nuc_to_cilia_'+ f"{num:04}" + '.tiff'
+    pathnew='/Users/sneha/Desktop/ciliaJan22/visualizer25/combined_'+ f"{num:04}" + '.tiff'
     img.save(pathnew)
