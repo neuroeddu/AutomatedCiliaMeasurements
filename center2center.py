@@ -448,7 +448,7 @@ def main():
     valid_cilia_df = pd.DataFrame(valid_cilia)
     cent_to_cilia_df = pd.DataFrame(full_cent_to_cilia)
 
-    convert_dict_to_csv(c2c_output,OUTPUT_CSV_DIR_PATH + '/c2coutput.csv')
+    convert_dict_to_csv(c2c_output, OUTPUT_CSV_DIR_PATH + '/c2coutput.csv')
     valid_cent_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cent.csv')
     valid_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH+'/cent2cilia.csv')
     cent_to_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cilia.csv')
