@@ -1,14 +1,10 @@
-import csv
 import pandas as pd
 from math import sqrt, isnan
-import numpy as np
 from pandas.core.frame import DataFrame
-from shapely.geometry import Polygon, LineString, MultiPoint
-from shapely.ops import cascaded_union, unary_union
 
 ################################# TO CHANGE #################################
-csv_folder='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
-output_csv_dir_path='/Users/sneha/Desktop/ciliaJan22/c2coutputnone'
+CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
+OUTPUT_CSV_DIR_PATH='/Users/sneha/Desktop/ciliaJan22/c2coutputnone'
 ################################# TO CHANGE #################################
 
 def make_lists(im_num, grouped):
@@ -393,12 +389,12 @@ def main():
     # Read input from input folder
     fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
 
-    cell_df = pd.read_csv(csv_folder+'/MyExpt_Nucleus.csv', skipinitialspace=True, usecols=fields)
+    cell_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Nucleus.csv', skipinitialspace=True, usecols=fields)
     num_im = cell_df.ImageNumber.iat[-1]
     grouped_cell = cell_df.groupby(['ImageNumber'])
-    centriole_df = pd.read_csv(csv_folder+'/MyExpt_Centriole.csv', skipinitialspace=True, usecols=fields)
+    centriole_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Centriole.csv', skipinitialspace=True, usecols=fields)
     grouped_centriole = centriole_df.groupby(['ImageNumber'])
-    cilia_df = pd.read_csv(csv_folder+'/MyExpt_Cilia.csv', skipinitialspace=True, usecols=fields)
+    cilia_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Cilia.csv', skipinitialspace=True, usecols=fields)
     grouped_cilia = cilia_df.groupby(['ImageNumber'])
 
     # Make lists for the output
@@ -452,10 +448,10 @@ def main():
     valid_cilia_df = pd.DataFrame(valid_cilia)
     cent_to_cilia_df = pd.DataFrame(full_cent_to_cilia)
 
-    convert_dict_to_csv(c2c_output,output_csv_dir_path + '/c2coutput.csv')
-    valid_cent_df.to_csv(output_csv_dir_path+'/new_cent.csv')
-    valid_cilia_df.to_csv(output_csv_dir_path+'/cent2cilia.csv')
-    cent_to_cilia_df.to_csv(output_csv_dir_path+'/new_cilia.csv')
+    convert_dict_to_csv(c2c_output,OUTPUT_CSV_DIR_PATH + '/c2coutput.csv')
+    valid_cent_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cent.csv')
+    valid_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH+'/cent2cilia.csv')
+    cent_to_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cilia.csv')
 
 
 
