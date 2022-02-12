@@ -6,8 +6,8 @@ from collections import defaultdict
 from bisect import insort
 from scipy.spatial import KDTree
 ################################# TO CHANGE #################################
-CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
-OUTPUT_CSV_DIR_PATH='/Users/sneha/Desktop/c2coutput/threshold_none'
+CSV_FOLDER = '/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
+OUTPUT_CSV_DIR_PATH = '/Users/sneha/Desktop/c2coutput/threshold_none'
 ################################# TO CHANGE #################################
 
 
@@ -22,6 +22,7 @@ def make_lists(im_num, grouped):
     im_df = grouped.get_group(im_num)
     im_df.drop('ImageNumber', axis=1, inplace=True)
     return im_df.values.tolist()
+
 
 def nearest_child(parent_list, child_list, arity, threshold=float('inf')):
     """TODO add nearest_child docstring."""
@@ -39,15 +40,15 @@ def nearest_child(parent_list, child_list, arity, threshold=float('inf')):
 
     for child_idx, child_coords in enumerate(child_list):
         dist, parent_idx = kd_tree.query(child_coords)
-        parent_idx=parent_idx+1
+        parent_idx = parent_idx + 1
 
-        if dist>threshold:
-            child_to_parent[child_idx]['path_length']=-1
-            child_to_parent[child_idx]['parent']=-1
-            continue 
+        if dist > threshold:
+            child_to_parent[child_idx]['path_length'] = -1
+            child_to_parent[child_idx]['parent'] = -1
+            continue
 
-        child_to_parent[child_idx]['path_length']=dist
-        child_to_parent[child_idx]['parent']=parent_idx
+        child_to_parent[child_idx]['path_length'] = dist
+        child_to_parent[child_idx]['parent'] = parent_idx
 
         insort(visited[parent_idx], (dist, child_idx))
         if len(visited[parent_idx]) > arity:
@@ -342,16 +343,9 @@ def main():
     cent_to_cilia_df = pd.DataFrame(full_cent_to_cilia)
 
     convert_dict_to_csv(c2c_output, OUTPUT_CSV_DIR_PATH + '/c2coutput.csv')
-<<<<<<< HEAD
     valid_cent_df.to_csv(OUTPUT_CSV_DIR_PATH + '/new_cent.csv')
-    valid_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH + '/cent2cilia.csv')
+    valid_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH + '/new_cilia.csv')
     cent_to_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH + '/new_cilia.csv')
-=======
-    valid_cent_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cent.csv')
-    valid_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cilia.csv')
-    cent_to_cilia_df.to_csv(OUTPUT_CSV_DIR_PATH+'/new_cilia.csv')
-
->>>>>>> upstream/main
 
 
 if __name__ == "__main__":

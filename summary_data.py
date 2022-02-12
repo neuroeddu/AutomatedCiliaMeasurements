@@ -4,18 +4,17 @@ import pandas as pd
 from bokeh.plotting import figure, curdoc
 from bokeh.models import Dropdown
 from bokeh.layouts import column, row
-from bokeh.io import show
 from functools import partial
 
 ################################# TO CHANGE #################################
-CELL_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Nucleus.csv'
-CILIA_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
-CENTRIOLE_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
-IMAGE_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Image.csv'
-IM_CSV_DIR_PATH='/home/ubuntu/ciliaNov22/im_output/'
-C2C_OUTPUT_PATH='/home/ubuntu/ciliaNov22/c2coutput.csv'
-VALID_CILIA='/home/ubuntu/ciliaNov22/new_cilia.csv'
-VALID_CENT='/home/ubuntu/ciliaNov22/new_cent.csv'
+CELL_CSV_PATH = '/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Nucleus.csv'
+CILIA_CSV_PATH = '/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
+CENTRIOLE_CSV_PATH = '/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
+IMAGE_CSV_PATH = '/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Image.csv'
+IM_CSV_DIR_PATH = '/home/ubuntu/ciliaNov22/im_output/'
+C2C_OUTPUT_PATH = '/home/ubuntu/ciliaNov22/c2coutput.csv'
+VALID_CILIA = '/home/ubuntu/ciliaNov22/new_cilia.csv'
+VALID_CENT = '/home/ubuntu/ciliaNov22/new_cent.csv'
 ################################# TO CHANGE #################################
 
 
@@ -356,7 +355,9 @@ def main():
         **{f'Centriole area to cilia {attr}':
             partial(cent_area_to_cilia, attr=attr) for attr in valid_cilia_attrs}
     }
-    # cent_area_to_cilia(grouped_associates, grouped_cilia, grouped_centriole, num_im, measure, **kwargs):
+    # cent_area_to_cilia(
+    #    grouped_associates, grouped_cilia, grouped_centriole, num_im, measure, **kwargs
+    # ):
     # cent_to_cilia_scatter
     # nuclei_to_centriole_scatter(associate_df, centriole_df, cell_df)
     # nuc_per_cilia(grouped_valid_cilia, num_im, image_df, **kwargs):
