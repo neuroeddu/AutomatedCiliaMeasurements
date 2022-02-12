@@ -3,11 +3,18 @@ import pandas as pd
 from bokeh.plotting import figure, curdoc
 from bokeh.models import Dropdown
 from bokeh.layouts import column, row
+from bokeh.io import show
 from functools import partial
 
 ################################# TO CHANGE #################################
-CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
-C2C_OUTPUT_PATH='/Users/sneha/Desktop/ciliaNov22'
+CELL_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Nucleus.csv'
+CILIA_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
+CENTRIOLE_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
+IMAGE_CSV_PATH='/home/ubuntu/ciliaNov22/spreadsheets_im_output/MyExpt_Image.csv'
+IM_CSV_DIR_PATH='/home/ubuntu/ciliaNov22/im_output/'
+C2C_OUTPUT_PATH='/home/ubuntu/ciliaNov22/c2coutput.csv'
+VALID_CILIA='/home/ubuntu/ciliaNov22/new_cilia.csv'
+VALID_CENT='/home/ubuntu/ciliaNov22/new_cent.csv'
 ################################# TO CHANGE #################################
 
 def make_figure(title, x_axis_label = '', y_axis_label = ''):
@@ -76,6 +83,7 @@ def len_cilia_to_size_nucleus(grouped_cell, grouped_cilia, grouped_valid_cilia, 
         result.append(avg_cilia/avg_nuc)
     return result      
 
+# TODO change histogram to reflect this? idk.
 def how_many_cilia_per_size(grouped_cilia, grouped_valid_cilia, num_im, col_idx):
     NUM_BINS=500
     result=[[] for bin in range(0,NUM_BINS)]
@@ -242,26 +250,24 @@ def cent_area_to_cilia(grouped_associates, grouped_cilia, grouped_centriole, num
 
 def main():
 
-    cell_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Nucleus.csv', skipinitialspace=True)
+    cell_df = pd.read_csv(CELL_CSV_PATH, skipinitialspace=True)
     num_im = cell_df.ImageNumber.iat[-1]
     num_cells=cell_df.shape[0]
     grouped_cell = cell_df.groupby(['ImageNumber'])
-
-    centriole_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Centriole.csv', skipinitialspace=True)
+    centriole_df = pd.read_csv(CENTRIOLE_CSV_PATH, skipinitialspace=True)
     grouped_centriole = centriole_df.groupby(['ImageNumber'])
-
-    cilia_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Cilia.csv', skipinitialspace=True)
+    cilia_df = pd.read_csv(CILIA_CSV_PATH, skipinitialspace=True)
     grouped_cilia = cilia_df.groupby(['ImageNumber'])
-
     cols_to_use = list(cilia_df.columns)[2:]
 
-    associate_df = pd.read_csv(C2C_OUTPUT_PATH+'/c2coutput.csv', skipinitialspace=True)
+    associate_df = pd.read_csv(C2C_OUTPUT_PATH, skipinitialspace=True)
     grouped_associates = associate_df.groupby(['ImageNumber'])
 
-    valid_cilia_df = pd.read_csv(C2C_OUTPUT_PATH+'/new_cilia.csv', skipinitialspace=True)
+    valid_cilia_df = pd.read_csv(VALID_CILIA, skipinitialspace=True)
     grouped_valid_cilia = valid_cilia_df.groupby(['0'])
-    valid_cent_df = pd.read_csv(C2C_OUTPUT_PATH+'/new_cent.csv', skipinitialspace=True)
+    valid_cent_df = pd.read_csv(VALID_CENT, skipinitialspace=True)
     grouped_valid_cent = valid_cent_df.groupby(['0'])
+    image_df = pd.read_csv(IMAGE_CSV_PATH, skipinitialspace=True)
 
     histogram_dispatch_dict = {
         'Num nuclei per im': num_nuc_per_im,
@@ -290,7 +296,11 @@ def main():
         **{f'Nucleus area to cilia {attr}': partial(nuclei_to_cilia_scatter, attr=attr) for attr in valid_cilia_attrs},
         **{f'Centriole area to cilia {attr}': partial(cent_area_to_cilia, attr=attr) for attr in valid_cilia_attrs}
     }
-    
+    # cent_area_to_cilia(grouped_associates, grouped_cilia, grouped_centriole, num_im, measure, **kwargs):
+    # cent_to_cilia_scatter
+    # nuclei_to_centriole_scatter(associate_df, centriole_df, cell_df)
+    # nuc_per_cilia(grouped_valid_cilia, num_im, image_df, **kwargs):
+
     cilia_per_thing_dispatch_dict = {
     }
 
