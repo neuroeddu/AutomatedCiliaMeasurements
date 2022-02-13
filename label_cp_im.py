@@ -3,18 +3,16 @@ import csv
 from PIL import Image, ImageDraw, ImageFont
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/ciliaNov11/c2c_output/new_cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/ciliaNov11/spreadsheets_im_output/MyExpt_Centriole.csv'
-im_csv_dir_path='/Users/sneha/Desktop/ciliaNov11/im_output/'
-output_im_dir_path='/Users/sneha/Desktop/ciliaNov11/labeled_cp_im'
-channel_dict={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
-centriole=None # True or None
+CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
+IM_CSV_DIR_PATH='/Users/sneha/Desktop/ciliaNov11/im_output/'
+OUTPUT_IM_DIR_PATH='/Users/sneha/Desktop/ciliaNov11/labeled_cp_im'
+CHANNEL_DICT={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
+CENTRIOLE=None # True or None
 ################################# TO CHANGE #################################
 
 # Makes paths for us to be able to find init imgs / for images to go 
 def make_paths(num, channel, label): 
-    path = im_csv_dir_path + channel_dict[channel] + f"{num:04}" + ('_LABELED.tiff' if label else '.tiff')
+    path = IM_CSV_DIR_PATH + CHANNEL_DICT[channel] + f"{num:04}" + ('_LABELED.tiff' if label else '.tiff')
     print(path)
     return path
 
@@ -65,15 +63,15 @@ def batch_script():
     nuclei_fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y'] 
     centriole_fields = ['ImageNumber', 'Centriole', 'Location_Center_X', 'Location_Center_Y']
     # Reads csv and groups by the im num
-    cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True, usecols=nuclei_fields)
+    cell_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Nucleus.csv', skipinitialspace=True, usecols=nuclei_fields)
     num_im = cell_df.ImageNumber.iat[-1]
     grouped_cell = cell_df.groupby(['ImageNumber'])
     
-    grouped_cilia = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=cilia_fields).groupby(['ImageNumber'])
+    grouped_cilia = pd.read_csv(CSV_FOLDER+'/MyExpt_Cilia.csv', skipinitialspace=True, usecols=cilia_fields).groupby(['ImageNumber'])
 
     grouped_centriole=None
     # If we have centriole images, read them too. If not, keep the grouped as none (so that we can pass it into the next func)
-    grouped_centriole=centriole and pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=centriole_fields).groupby(['ImageNumber'])
+    grouped_centriole=CENTRIOLE and pd.read_csv(CSV_FOLDER+'/MyExpt_Centriole.csv', skipinitialspace=True, usecols=centriole_fields).groupby(['ImageNumber'])
 
     # Iterate through the images. Make list of nuclei/cilia/centrioles, then make paths for our current image & label+save 
     # image. 
@@ -86,7 +84,7 @@ def batch_script():
         im_path_cilia=make_paths(num, '02', False)
         label_im(cilia_list, im_path_cilia, num, '02', cilia_list_num)
 
-        if centriole:
+        if CENTRIOLE:
             im_path_centriole=make_paths(num, '03', False)
             label_im(centriole_list, im_path_centriole, num, '03')
 

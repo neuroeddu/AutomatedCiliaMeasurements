@@ -1,15 +1,14 @@
+# visualize pairs
 import pandas as pd
 import csv
 from PIL import Image, ImageDraw, ImageFont
 
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Centriole.csv'
-im_csv_dir_path='/Users/sneha/Desktop/ciliaJan13/combinedim/'
-c2c_output_path='/Users/sneha/Desktop/ciliaJan22/c2coutputnone/c2coutput.csv'
-output_im_dir_path='/Users/sneha/Desktop/ciliaJan22/visualizernone/'
-channel_dict={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
+CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
+IM_CSV_DIR_PATH='/Users/sneha/Desktop/ciliaJan13/combinedim/'
+C2C_OUTPUT_PATH='/Users/sneha/Desktop/ciliaJan22/c2coutputnone/c2coutput.csv'
+OUTPUT_IM_DIR_PATH='/Users/sneha/Desktop/ciliaJan22/visualizernone/'
+CHANNEL_DICT={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
 ################################# TO CHANGE #################################
 
 def draw_things(cur_nuc, visited_nuc, cur_cent, visited_cent, img, new_list_cell, new_list_centriole):
@@ -33,19 +32,19 @@ def draw_things(cur_nuc, visited_nuc, cur_cent, visited_cent, img, new_list_cell
 
 fields = ['ImageNumber', 'Location_Center_X', 'Location_Center_Y']
 
-cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True, usecols=fields)
+cell_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Nucleus.csv', skipinitialspace=True, usecols=fields)
 num_im = cell_df.ImageNumber.iat[-1]
 grouped_cell = cell_df.groupby(['ImageNumber'])
 
-cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True, usecols=fields)
+cilia_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Cilia.csv', skipinitialspace=True, usecols=fields)
 grouped_cilia = cilia_df.groupby(['ImageNumber'])
 
 fields_c2c = ['ImageNumber','Nucleus', 'Centriole']
-associate_df = pd.read_csv(c2c_output_path, skipinitialspace=True, usecols=fields_c2c)
+associate_df = pd.read_csv(C2C_OUTPUT_PATH, skipinitialspace=True, usecols=fields_c2c)
 grouped_associates= associate_df.groupby(['ImageNumber'])
 
 
-centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True, usecols=fields)
+centriole_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Centriole.csv', skipinitialspace=True, usecols=fields)
 grouped_centriole = centriole_df.groupby(['ImageNumber'])
 
 for num in range(1, num_im+1):
@@ -57,15 +56,15 @@ for num in range(1, num_im+1):
     df_centriole.drop('ImageNumber', axis=1, inplace=True)
     new_list_centriole = df_centriole.values.tolist()
 
-    # df_cilia = grouped_cilia.get_group(num) 
-    # df_cilia.drop('ImageNumber', axis=1, inplace=True)
-    # new_list_cilia = df_cilia.values.tolist()
+    df_cilia = grouped_cilia.get_group(num) 
+    df_cilia.drop('ImageNumber', axis=1, inplace=True)
+    new_list_cilia = df_cilia.values.tolist()
 
     df_associates = grouped_associates.get_group(num) 
     df_associates.drop('ImageNumber', axis=1, inplace=True)
     new_list_associates = df_associates.values.tolist()
 
-    path=(im_csv_dir_path + 'CombinedIm' + f"{num:04}" + '.tiff')
+    path=(IM_CSV_DIR_PATH + 'CombinedIm' + f"{num:04}" + '.tiff')
     img = Image.open(path)
 
     for x, thing in enumerate(new_list_associates):

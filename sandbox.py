@@ -22,7 +22,7 @@ def make_lists(im_num, grouped):
     im_df.drop('ImageNumber', axis=1, inplace=True)
     return im_df.values.tolist()
 
-def nearest_child(parent_list, child_list, arity):
+def nearest_child(parent_list, child_list, arity, threshold=float('inf')):
 
     kd_tree = KDTree(parent_list)
     child_to_parent = [
@@ -39,6 +39,12 @@ def nearest_child(parent_list, child_list, arity):
     for child_idx, child_coords in enumerate(child_list):
         dist, parent_idx = kd_tree.query(child_coords)
         parent_idx=parent_idx+1
+
+        if dist>threshold:
+            child_to_parent[child_idx]['path_length']=-1
+            child_to_parent[child_idx]['parent']=-1
+            continue 
+
         child_to_parent[child_idx]['path_length']=dist
         child_to_parent[child_idx]['parent']=parent_idx
         
@@ -50,7 +56,8 @@ def nearest_child(parent_list, child_list, arity):
             child_to_parent[child_to_remove]['path_length']=-1
             child_to_parent[child_to_remove]['parent']=-1 
             removed.add(child_to_remove)
-              
+    print(child_to_parent)
+    1/0
 
     return child_to_parent, removed  
 
