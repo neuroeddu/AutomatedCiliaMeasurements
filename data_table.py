@@ -1,33 +1,30 @@
 import pandas as pd
+
 ################################# TO CHANGE #################################
-cell_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Nucleus.csv'
-cilia_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv'
-centriole_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Centriole.csv'
-image_csv_path='/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Image.csv'
-im_csv_dir_path='/Users/sneha/Desktop/ciliaNov22/im_output/'
-c2c_output_path='/Users/sneha/Desktop/ciliaNov22/c2coutput.csv'
-valid_cilia='/Users/sneha/Desktop/ciliaNov22/new_cilia.csv'
+CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
+IM_CSV_DIR_PATH='/Users/sneha/Desktop/ciliaNov22/im_output/'
+C2C_OUTPUT_PATH='/Users/sneha/Desktop/ciliaNov22'
 ################################# TO CHANGE #################################
 
-
-cell_df = pd.read_csv(cell_csv_path, skipinitialspace=True)
+# Set up CSVs into dataframes
+cell_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Nucleus.csv', skipinitialspace=True)
 num_im = cell_df.ImageNumber.iat[-1]
 num_cells=cell_df.shape[0]
 grouped_cell = cell_df.groupby(['ImageNumber'])
-centriole_df = pd.read_csv(centriole_csv_path, skipinitialspace=True)
+centriole_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Centriole.csv', skipinitialspace=True)
 grouped_centriole = centriole_df.groupby(['ImageNumber'])
-cilia_df = pd.read_csv(cilia_csv_path, skipinitialspace=True)
+cilia_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Cilia.csv', skipinitialspace=True)
 grouped_cilia = cilia_df.groupby(['ImageNumber'])
-cols_cilia = list(cilia_df.columns)[2:]
-associate_df = pd.read_csv(c2c_output_path, skipinitialspace=True)
+associate_df = pd.read_csv(C2C_OUTPUT_PATH + '/c2coutput.csv', skipinitialspace=True)
 grouped_associates = associate_df.groupby(['ImageNumber'])
-
-valid_cilia_df = pd.read_csv(valid_cilia, skipinitialspace=True)
+valid_cilia_df = pd.read_csv(C2C_OUTPUT_PATH + '/new_cilia.csv', skipinitialspace=True)
 grouped_valid_cilia = valid_cilia_df.groupby(['0'])
-image_df = pd.read_csv(image_csv_path, skipinitialspace=True)
+image_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Image.csv', skipinitialspace=True)
 
+# Set up output dictionary
 result_dict={'cilia num': -1, 'nuclei num': -1, 'present cilia/nuclei': -1, 'avg nuclei area': -1, 'avg cilia length': -1, 'avg cilia area': -1}
 
+# Calculate measurements and place into output dictionary
 result_dict['avg nuclei area']=cell_df['AreaShape_Area'].mean()
 
 cell_counts = grouped_cell.size()
@@ -47,7 +44,4 @@ result_dict['avg cilia length']=df_merged['AreaShape_MajorAxisLength'].mean()
 nuc_without_cilia=associate_df[associate_df['Cilia'].astype(int)>=0]
 result_dict['present cilia/nuclei']=len(nuc_without_cilia)/len(associate_df)
 
-
 print(result_dict)
-
-print(grouped_cell.mean())

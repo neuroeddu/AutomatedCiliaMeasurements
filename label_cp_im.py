@@ -1,3 +1,6 @@
+# Deprecated? Labels cellprofiler images with ALL cilia/cent/nuclei 
+# ie not just valid ones
+
 import pandas as pd
 import csv
 from PIL import Image, ImageDraw, ImageFont

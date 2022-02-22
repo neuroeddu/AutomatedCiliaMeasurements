@@ -1,3 +1,5 @@
+# This is deprecated. like the data table but worse -- only does cell/cilia
+# Ask abt
 import pandas as pd
 
 ################################# TO CHANGE #################################

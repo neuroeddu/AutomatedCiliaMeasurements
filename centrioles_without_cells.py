@@ -1,3 +1,7 @@
+# Makes and labels centrioles without cells
+# Deprecated?
+# TODO Ask 
+
 import csv
 import pandas as pd
 from math import sqrt
