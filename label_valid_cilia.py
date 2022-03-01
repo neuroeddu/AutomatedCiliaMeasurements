@@ -3,10 +3,13 @@
 import pandas as pd
 from PIL import Image, ImageDraw
 
+from label_cp_im import INPUT_IM_NUM
+
 ################################# TO CHANGE #################################
 MEASUREMENTS_CSV='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output/MyExpt_Cilia.csv'
 VALID_CSV='/Users/sneha/Desktop/c2coutput/threshold_none/new_cilia.csv' # ONLY if cent or cilia, otherwise None
 IM_CSV_DIR_PATH='/Users/sneha/Desktop/ciliaJan22/im_output'
+INPUT_IM_NUM=None # none or number of images to go through
 CHANNEL_DICT={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
 CHANNEL='02'
 ################################# TO CHANGE #################################
@@ -31,7 +34,6 @@ def make_paths(num, channel, label):
     
 def main():
     measurements_df = pd.read_csv(MEASUREMENTS_CSV, skipinitialspace=True, usecols=['ImageNumber', 'ObjectNumber', 'Location_Center_X', 'Location_Center_Y'])
-    num_im = measurements_df.ImageNumber.iat[-1]
 
     # if not all measurements are valid, merge
     if VALID_CSV:
@@ -40,8 +42,10 @@ def main():
         measurements_df = valid_df.merge(measurements_df, on=['ImageNumber', 'ObjectNumber'])
 
     grouped_cilia = measurements_df.groupby(['ImageNumber'])
-
-    for num in range(1, num_im+1):
+    # Get number of images, either from the number inputted or from the total number of images
+    images=None
+    images=INPUT_IM_NUM and measurements_df.ImageNumber.iat[-1]
+    for num in range(1, images+1):
         # Get list of coords to plot
         coords_df = grouped_cilia.get_group(num) 
         coords_df.drop(['ImageNumber', 'ObjectNumber'], axis=1, inplace=True)
