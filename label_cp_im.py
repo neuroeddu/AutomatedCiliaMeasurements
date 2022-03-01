@@ -1,13 +1,16 @@
 # Deprecated? Labels cellprofiler images with ALL cilia/cent/nuclei 
 # ie not just valid ones
 
+# make it so that im_num doesn't have to be equal to im input num 
+
 import pandas as pd
-import csv
-from PIL import Image, ImageDraw, ImageFont
+
+from PIL import Image, ImageDraw
 
 ################################# TO CHANGE #################################
 CSV_FOLDER='/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output'
 IM_CSV_DIR_PATH='/Users/sneha/Desktop/ciliaNov11/im_output/'
+INPUT_IM_NUM=None # None or # of images you want to visualize (will be chosen from the first)
 OUTPUT_IM_DIR_PATH='/Users/sneha/Desktop/ciliaNov11/labeled_cp_im'
 CHANNEL_DICT={'01': 'NucleusOverlay', '02': 'CiliaOverlay', '03': 'CentrioleOverlay'}
 CENTRIOLE=None # True or None
@@ -35,7 +38,6 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
     cell_list = helper_make_lists(im_num, grouped_cell)
     cilia_list, cilia_list_num = helper_make_lists(im_num, grouped_cilia, 'Cilia')
     centriole_list=None
-
     centriole_list = grouped_centriole and helper_make_lists(im_num, grouped_centriole)
 
     return cell_list, cilia_list, centriole_list, cilia_list_num
@@ -44,8 +46,6 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
 def label_im(coordinate_list, im, num, channel, li_num=None):
     img = Image.open(im)
 
-    if li_num:
-        print("hi")
     # Writes number onto image at center 
     for i, val in enumerate(coordinate_list):
         x_coord = val[0]
@@ -67,7 +67,6 @@ def batch_script():
     centriole_fields = ['ImageNumber', 'Centriole', 'Location_Center_X', 'Location_Center_Y']
     # Reads csv and groups by the im num
     cell_df = pd.read_csv(CSV_FOLDER+'/MyExpt_Nucleus.csv', skipinitialspace=True, usecols=nuclei_fields)
-    num_im = cell_df.ImageNumber.iat[-1]
     grouped_cell = cell_df.groupby(['ImageNumber'])
     
     grouped_cilia = pd.read_csv(CSV_FOLDER+'/MyExpt_Cilia.csv', skipinitialspace=True, usecols=cilia_fields).groupby(['ImageNumber'])
@@ -75,10 +74,13 @@ def batch_script():
     grouped_centriole=None
     # If we have centriole images, read them too. If not, keep the grouped as none (so that we can pass it into the next func)
     grouped_centriole=CENTRIOLE and pd.read_csv(CSV_FOLDER+'/MyExpt_Centriole.csv', skipinitialspace=True, usecols=centriole_fields).groupby(['ImageNumber'])
-
+    
+    # Get number of images, either from the number inputted or from the total number of images
+    images=None
+    images=INPUT_IM_NUM and cell_df.ImageNumber.iat[-1]
     # Iterate through the images. Make list of nuclei/cilia/centrioles, then make paths for our current image & label+save 
     # image. 
-    for num in range(1, num_im+1):
+    for num in range(1, images+1):
         cell_list, cilia_list, centriole_list, cilia_list_num = make_lists(num, grouped_cell, grouped_cilia, grouped_centriole)
         
         im_path_cell=make_paths(num, '01', False)
