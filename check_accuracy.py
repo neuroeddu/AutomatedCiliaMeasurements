@@ -13,7 +13,7 @@ grouped_true=true_df.groupby(['ImageNum'])
 
 num_im = true_df.ImageNum.iat[-1] # Get number of images so we can iterate through them
 
-result_li=['Image', 'True positives', 'False positives', 'False negatives']
+result_li=[]
 
 for num in range(1, num_im+1):
     # Get number of identified cilia for image
@@ -35,6 +35,8 @@ for num in range(1, num_im+1):
     result_li.append([num, c2c_df_im.shape[0]-false_pos.shape[0], false_pos.shape[0], false_neg.shape[0]])
 
 # Write to result csv
-with open(RESULT_PATH+'/result_csv', 'w') as f:
+with open(RESULT_PATH+'/accuracy_checker.csv', 'w') as f:
     write = csv.writer(f)
-    write.writerow(result_li)
+    write.writerow(['Image', 'True positives', 'False positives', 'False negatives'])
+    for row in result_li:
+        write.writerow(row)
