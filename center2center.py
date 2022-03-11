@@ -6,7 +6,7 @@ from bisect import insort
 from scipy.spatial import KDTree
 
 ################################# TO CHANGE #################################
-CSV_FOLDER = '/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output' 
+CSV_FOLDER = "/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output"
 OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/c2coutput/threshold_none"
 ################################# TO CHANGE #################################
 
