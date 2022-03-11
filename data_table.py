@@ -2,12 +2,14 @@ import pandas as pd
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--input', help='folder with cellprofiler CSVs path', required=True)
-parser.add_argument('-c', '--c2c', help='path to c2c output CSVs', required=True)
+parser.add_argument(
+    "-i", "--input", help="folder with cellprofiler CSVs path", required=True
+)
+parser.add_argument("-c", "--c2c", help="path to c2c output CSVs", required=True)
 args = vars(parser.parse_args())
 
-CSV_FOLDER=args['input']
-C2C_OUTPUT_PATH = args['c2c']
+CSV_FOLDER = args["input"]
+C2C_OUTPUT_PATH = args["c2c"]
 
 # Set up CSVs into dataframes
 cell_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Nucleus.csv", skipinitialspace=True)

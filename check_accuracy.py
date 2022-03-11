@@ -4,16 +4,16 @@ import argparse
 
 # get true results and results from c2c CSVs, and specify output path
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', '--true', help='path to true results', required=True)
-parser.add_argument('-c', '--c2c', help='path to c2c cilia CSV', required=True)
-parser.add_argument('-o', '--output', help='output folder path', required=True)
+parser.add_argument("-t", "--true", help="path to true results", required=True)
+parser.add_argument("-c", "--c2c", help="path to c2c cilia CSV", required=True)
+parser.add_argument("-o", "--output", help="output folder path", required=True)
 
 args = vars(parser.parse_args())
 
-c2c_df = pd.read_csv(args['c2c'], skipinitialspace=True)
+c2c_df = pd.read_csv(args["c2c"], skipinitialspace=True)
 grouped_c2c = c2c_df.groupby(["0"])
 
-true_df = pd.read_csv(args['true'], skipinitialspace=True)
+true_df = pd.read_csv(args["true"], skipinitialspace=True)
 grouped_true = true_df.groupby(["ImageNum"])
 
 num_im = true_df.ImageNum.iat[-1]  # Get number of images so we can iterate through them
@@ -46,7 +46,7 @@ for num in range(1, num_im + 1):
     )
 
 # Write to result csv
-with open(args['output'] + "/accuracy_checker.csv", "w") as f:
+with open(args["output"] + "/accuracy_checker.csv", "w") as f:
     write = csv.writer(f)
     write.writerow(["Image", "True positives", "False positives", "False negatives"])
     for row in result_li:

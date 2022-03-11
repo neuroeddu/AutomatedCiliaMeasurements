@@ -8,19 +8,21 @@ import argparse
 
 # parse input arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('-m', '--measurements', help='path to CellProfiler cilia CSV', required=True)
-parser.add_argument('-c', '--c2c', help='path to c2c cilia CSV', required=True)
+parser.add_argument(
+    "-m", "--measurements", help="path to CellProfiler cilia CSV", required=True
+)
+parser.add_argument("-c", "--c2c", help="path to c2c cilia CSV", required=True)
 args = vars(parser.parse_args())
 
-# params we want to check 
-tuned_parameters = [{"n_clusters": [2,3,4,5,6,7,8,9]}]
+# params we want to check
+tuned_parameters = [{"n_clusters": [2, 3, 4, 5, 6, 7, 8, 9]}]
 
 # Convert the CSVs into dataframes and group by image
-measurements_df = pd.read_csv(args['measurements'], skipinitialspace=True)
+measurements_df = pd.read_csv(args["measurements"], skipinitialspace=True)
 num_im = measurements_df.ImageNumber.iat[-1]
 grouped_measurements = measurements_df.groupby(["ImageNumber"])
 
-valid_cilia_df = pd.read_csv(args['c2c'], skipinitialspace=True)
+valid_cilia_df = pd.read_csv(args["c2c"], skipinitialspace=True)
 grouped_valid_cilia = valid_cilia_df.groupby(["0"])
 
 # Set up the K-Means/scaling
