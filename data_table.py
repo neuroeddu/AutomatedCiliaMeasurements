@@ -1,10 +1,13 @@
 import pandas as pd
+import argparse
 
-################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output"
-IM_CSV_DIR_PATH = "/Users/sneha/Desktop/ciliaNov22/im_output/"
-C2C_OUTPUT_PATH = "/Users/sneha/Desktop/ciliaNov22"
-################################# TO CHANGE #################################
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', '--input', help='folder with cellprofiler CSVs path', required=True)
+parser.add_argument('-c', '--c2c', help='path to c2c output CSVs', required=True)
+args = vars(parser.parse_args())
+
+CSV_FOLDER=args['input']
+C2C_OUTPUT_PATH = args['c2c']
 
 # Set up CSVs into dataframes
 cell_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Nucleus.csv", skipinitialspace=True)

@@ -1,15 +1,6 @@
 import pandas as pd
 from PIL import Image, ImageDraw
-
-################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output"
-IM_CSV_DIR_PATH = "/Users/sneha/Desktop/ciliaJan13/combinedim/"
-INPUT_IM_NUM = None  # change to number if we want a specific number of input images
-C2C_OUTPUT_PATH = "/Users/sneha/Desktop/ciliaJan22/c2coutputnone/c2coutput.csv"
-OUTPUT_IM_DIR_PATH = "/Users/sneha/Desktop/ciliaJan22/visualizernone/"
-CHANNEL_DICT = {"01": "NucleusOverlay", "02": "CiliaOverlay", "03": "CentrioleOverlay"}
-################################# TO CHANGE #################################
-
+import argparse 
 
 def draw_things(cur_nuc, cur_cent, img, new_list_cell, new_list_centriole):
 
@@ -29,6 +20,18 @@ def draw_things(cur_nuc, cur_cent, img, new_list_cell, new_list_centriole):
 
 
 def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='folder with cellprofiler CSVs path', required=True)
+    parser.add_argument('-m', '--images', help='folder with cellprofiler images path', required=True)
+    parser.add_argument('-c', '--c2c', help='path to c2c output CSV', required=True)
+    parser.add_argument('-o', '--output', help='output folder path', required=True)
+    parser.add_argument('-n', '--num', help='number of images to label, if specific number of im wanted', required=False)
+
+    args = vars(parser.parse_args())
+
+    CSV_FOLDER = args['input']
+    IM_CSV_DIR_PATH = args['images']
     # Load data
     fields = ["ImageNumber", "Location_Center_X", "Location_Center_Y"]
 
@@ -44,7 +47,7 @@ def main():
 
     fields_c2c = ["ImageNumber", "Nucleus", "Centriole"]
     associate_df = pd.read_csv(
-        C2C_OUTPUT_PATH, skipinitialspace=True, usecols=fields_c2c
+        args['c2c'], skipinitialspace=True, usecols=fields_c2c
     )
     grouped_associates = associate_df.groupby(["ImageNumber"])
 
@@ -54,8 +57,7 @@ def main():
     grouped_centriole = centriole_df.groupby(["ImageNumber"])
 
     # Get number of images, either from the number inputted or from the total number of images
-    images = None
-    images = INPUT_IM_NUM and cell_df.ImageNumber.iat[-1]
+    images = int(args.get('num')) or cell_df.ImageNumber.iat[-1] 
 
     for num in range(1, images + 1):
         # Load grouped data into lists
@@ -123,5 +125,5 @@ def main():
                 )
 
         # Save image
-        new_path = OUTPUT_IM_DIR_PATH + "COMBINED_LABEL_" + f"{num:04}" + ".tiff"
+        new_path = args['output'] + "COMBINED_LABEL_" + f"{num:04}" + ".tiff"
         img.save(new_path)

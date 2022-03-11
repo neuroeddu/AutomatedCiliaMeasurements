@@ -4,21 +4,23 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
+import argparse
 
-################################# TO CHANGE #################################
-cilia_csv_path = (
-    "/Users/sneha/Desktop/ciliaNov22/spreadsheets_im_output/MyExpt_Cilia.csv"
-)
-valid_cilia = "/Users/sneha/Desktop/ciliaNov22/new_cilia.csv"
-tuned_parameters = [{"n_clusters": [3, 5, 1, 50, 7, 9, 2, 4, 25, 6, 8]}]
-################################# TO CHANGE #################################
+# parse input arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-m', '--measurements', help='path to CellProfiler cilia CSV', required=True)
+parser.add_argument('-c', '--c2c', help='path to c2c cilia CSV', required=True)
+args = vars(parser.parse_args())
+
+# params we want to check 
+tuned_parameters = [{"n_clusters": [2,3,4,5,6,7,8,9]}]
 
 # Convert the CSVs into dataframes and group by image
-measurements_df = pd.read_csv(cilia_csv_path, skipinitialspace=True)
+measurements_df = pd.read_csv(args['measurements'], skipinitialspace=True)
 num_im = measurements_df.ImageNumber.iat[-1]
 grouped_measurements = measurements_df.groupby(["ImageNumber"])
 
-valid_cilia_df = pd.read_csv(valid_cilia, skipinitialspace=True)
+valid_cilia_df = pd.read_csv(args['c2c'], skipinitialspace=True)
 grouped_valid_cilia = valid_cilia_df.groupby(["0"])
 
 # Set up the K-Means/scaling

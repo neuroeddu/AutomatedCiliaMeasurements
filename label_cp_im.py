@@ -1,27 +1,12 @@
-# Deprecated? Labels cellprofiler images with ALL cilia/cent/nuclei
-# ie not just valid ones
-
-# make it so that im_num doesn't have to be equal to im input num
-
 import pandas as pd
-
 from PIL import Image, ImageDraw
-
-################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output"
-IM_CSV_DIR_PATH = "/Users/sneha/Desktop/ciliaNov11/im_output/"
-INPUT_IM_NUM = (
-    None  # None or # of images you want to visualize (will be chosen from the first)
-)
-OUTPUT_IM_DIR_PATH = "/Users/sneha/Desktop/ciliaNov11/labeled_cp_im"
-CHANNEL_DICT = {"01": "NucleusOverlay", "02": "CiliaOverlay", "03": "CentrioleOverlay"}
-CENTRIOLE = None  # True or None
-################################# TO CHANGE #################################
+import argparse 
 
 # Makes paths for us to be able to find init imgs / for images to go
-def make_paths(num, channel, label):
+def make_paths(num, channel, label, path):
+    CHANNEL_DICT = {"01": "NucleusOverlay", "02": "CiliaOverlay", "03": "CentrioleOverlay"}
     path = (
-        IM_CSV_DIR_PATH
+        path
         + CHANNEL_DICT[channel]
         + f"{num:04}"
         + ("_LABELED.tiff" if label else ".tiff")
@@ -53,7 +38,7 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
 
 
 # Labels image
-def label_im(coordinate_list, im, num, channel, li_num=None):
+def label_im(coordinate_list, im, num, channel, output_path, li_num=None):
     img = Image.open(im)
 
     # Writes number onto image at center
@@ -63,15 +48,29 @@ def label_im(coordinate_list, im, num, channel, li_num=None):
         d = ImageDraw.Draw(img)
         if li_num:
             write_num = str(int(li_num[i]))
-        else:
+        else: 
             write_num = str(i + 1)
         d.text((x_coord, y_coord), write_num, fill=(255, 255, 255, 255))
 
-    path = make_paths(num, channel, True)
+    path = make_paths(num, channel, True, output_path)
     img.save(path)
 
 
 def batch_script():
+    # parsing 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='folder with cellprofiler CSVs path', required=True)
+    parser.add_argument('-m', '--images', help='folder with cellprofiler images path', required=True)
+    parser.add_argument('-o', '--output', help='output folder path', required=True)
+    parser.add_argument('-n', '--num', help='number of images to label, if specific number of im wanted', required=False)
+    parser.add_argument('-c', '--centriole', help='enter something here if you want centriole', required=False)
+
+    args = vars(parser.parse_args())
+
+    CSV_FOLDER = args['input']
+    IM_CSV_DIR_PATH = args['images']
+    OUTPUT_IM_DIR_PATH = args['output']
+
     # Columns we need to keep
     cilia_fields = ["ImageNumber", "Cilia", "Location_Center_X", "Location_Center_Y"]
     nuclei_fields = ["ImageNumber", "Location_Center_X", "Location_Center_Y"]
@@ -93,15 +92,15 @@ def batch_script():
 
     grouped_centriole = None
     # If we have centriole images, read them too. If not, keep the grouped as none (so that we can pass it into the next func)
-    grouped_centriole = CENTRIOLE and pd.read_csv(
+    grouped_centriole = args.get('centriole') and pd.read_csv(
         CSV_FOLDER + "/MyExpt_Centriole.csv",
         skipinitialspace=True,
         usecols=centriole_fields,
     ).groupby(["ImageNumber"])
 
     # Get number of images, either from the number inputted or from the total number of images
-    images = None
-    images = INPUT_IM_NUM and cell_df.ImageNumber.iat[-1]
+    images = int(args.get('num')) or cell_df.ImageNumber.iat[-1] 
+    
     # Iterate through the images. Make list of nuclei/cilia/centrioles, then make paths for our current image & label+save
     # image.
     for num in range(1, images + 1):
@@ -109,15 +108,15 @@ def batch_script():
             num, grouped_cell, grouped_cilia, grouped_centriole
         )
 
-        im_path_cell = make_paths(num, "01", False)
-        label_im(cell_list, im_path_cell, num, "01")
+        im_path_cell = make_paths(num, "01", False, IM_CSV_DIR_PATH)
+        label_im(cell_list, im_path_cell, num, "01", OUTPUT_IM_DIR_PATH)
 
-        im_path_cilia = make_paths(num, "02", False)
-        label_im(cilia_list, im_path_cilia, num, "02", cilia_list_num)
+        im_path_cilia = make_paths(num, "02", False, IM_CSV_DIR_PATH)
+        label_im(cilia_list, im_path_cilia, num, "02", OUTPUT_IM_DIR_PATH, cilia_list_num)
 
-        if CENTRIOLE:
-            im_path_centriole = make_paths(num, "03", False)
-            label_im(centriole_list, im_path_centriole, num, "03")
+        if args.get('centriole'):
+            im_path_centriole = make_paths(num, "03", False, IM_CSV_DIR_PATH)
+            label_im(centriole_list, im_path_centriole, num, "03", OUTPUT_IM_DIR_PATH)
 
 
 def main():

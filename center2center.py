@@ -4,12 +4,7 @@ from pandas.core.frame import DataFrame
 from collections import defaultdict
 from bisect import insort
 from scipy.spatial import KDTree
-
-################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output"
-OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/c2coutput/threshold_none"
-################################# TO CHANGE #################################
-
+import argparse 
 
 def make_lists(im_num, grouped):
     """
@@ -288,10 +283,18 @@ def convert_dict_to_csv(c2c_output, output_path):
         float_format="%.10g",
     )
 
-
 def main():
 
-    # Read input from input folder
+    # get input/output fol using argparse 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', help='folder with cellprofiler CSVs path', required=True)
+    parser.add_argument('-o', '--output', help='output folder path', required=True)
+    args = vars(parser.parse_args())
+
+    CSV_FOLDER=args['input']
+    OUTPUT_CSV_DIR_PATH= args['output']
+
+    # Read input from input folder and keep only these fields 
     fields = ["ImageNumber", "Location_Center_X", "Location_Center_Y"]
 
     cell_df = pd.read_csv(
