@@ -59,6 +59,7 @@ def label_im(coordinate_list, im, num, channel, output_path, li_num=None):
     path = make_paths(num, channel, True, output_path)
     img.save(path)
 
+
 def parse_args():
     # parsing
     parser = argparse.ArgumentParser()
@@ -84,9 +85,10 @@ def parse_args():
 
     return vars(parser.parse_args())
 
+
 def batch_script():
 
-    args=parse_args()
+    args = parse_args()
 
     CSV_FOLDER = args["input"]
     IM_CSV_DIR_PATH = args["images"]

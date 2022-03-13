@@ -284,6 +284,7 @@ def convert_dict_to_csv(c2c_output, output_path):
         float_format="%.10g",
     )
 
+
 def parse_args():
     # get input/output fol using argparse
     parser = argparse.ArgumentParser()
@@ -292,6 +293,7 @@ def parse_args():
     )
     parser.add_argument("-o", "--output", help="output folder path", required=True)
     return vars(parser.parse_args())
+
 
 def main():
     args = parse_args

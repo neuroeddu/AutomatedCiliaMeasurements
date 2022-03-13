@@ -34,6 +34,7 @@ def make_paths(num, channel, label, path):
     )
     return path
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -64,10 +65,11 @@ def parse_args():
 
     return vars(parser.parse_args())
 
+
 def main():
-    
+
     args = parse_args()
-    
+
     measurements_df = pd.read_csv(
         args["measurements"],
         skipinitialspace=True,

@@ -19,6 +19,7 @@ def draw_things(cur_nuc, cur_cent, img, new_list_cell, new_list_centriole):
     line_xy = [(int(nuc_x), int(nuc_y)), (int(cent_x), int(cent_y))]
     d.line(line_xy, fill=(255, 255, 255, 255))
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -37,6 +38,7 @@ def parse_args():
     )
 
     return vars(parser.parse_args())
+
 
 def main():
 
