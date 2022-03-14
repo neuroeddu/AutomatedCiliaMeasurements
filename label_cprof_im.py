@@ -1,7 +1,8 @@
 import pandas as pd
 from PIL import Image, ImageDraw
 import argparse
-import os 
+import os
+
 # Makes paths for us to be able to find init imgs / for images to go
 def make_paths(num, channel, label, path):
     CHANNEL_DICT = {
@@ -9,11 +10,10 @@ def make_paths(num, channel, label, path):
         "02": "CiliaOverlay",
         "03": "CentrioleOverlay",
     }
-    path = os.path.join(path, (
-        CHANNEL_DICT[channel]
-        + f"{num:04}"
-        + ("_LABELED.tiff" if label else ".tiff")
-    ))
+    path = os.path.join(
+        path,
+        (CHANNEL_DICT[channel] + f"{num:04}" + ("_LABELED.tiff" if label else ".tiff")),
+    )
     return path
 
 
@@ -44,7 +44,7 @@ def label_im(coordinate_list, im, num, channel, output_path):
         x_coord = val[0]
         y_coord = val[1]
         d = ImageDraw.Draw(img)
-        
+
         write_num = str(i + 1)
         d.text((x_coord, y_coord), write_num, fill=(255, 255, 255, 255))
 
@@ -124,9 +124,7 @@ def batch_script():
         label_im(cell_list, im_path_cell, num, "01", OUTPUT_IM_DIR_PATH)
 
         im_path_cilia = make_paths(num, "02", False, IM_CSV_DIR_PATH)
-        label_im(
-            cilia_list, im_path_cilia, num, "02", OUTPUT_IM_DIR_PATH
-        )
+        label_im(cilia_list, im_path_cilia, num, "02", OUTPUT_IM_DIR_PATH)
 
         if args.get("centriole"):
             im_path_centriole = make_paths(num, "03", False, IM_CSV_DIR_PATH)

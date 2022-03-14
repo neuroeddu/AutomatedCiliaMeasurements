@@ -306,16 +306,16 @@ def main():
     fields = ["ImageNumber", "Location_Center_X", "Location_Center_Y"]
 
     cell_df = pd.read_csv(
-        join(CSV_FOLDER,"MyExpt_Nucleus.csv"), skipinitialspace=True, usecols=fields
+        join(CSV_FOLDER, "MyExpt_Nucleus.csv"), skipinitialspace=True, usecols=fields
     )
     num_im = cell_df.ImageNumber.iat[-1]
     grouped_cell = cell_df.groupby(["ImageNumber"])
     centriole_df = pd.read_csv(
-        join(CSV_FOLDER,"MyExpt_Centriole.csv"), skipinitialspace=True, usecols=fields
+        join(CSV_FOLDER, "MyExpt_Centriole.csv"), skipinitialspace=True, usecols=fields
     )
     grouped_centriole = centriole_df.groupby(["ImageNumber"])
     cilia_df = pd.read_csv(
-        join(CSV_FOLDER,"MyExpt_Cilia.csv"), skipinitialspace=True, usecols=fields
+        join(CSV_FOLDER, "MyExpt_Cilia.csv"), skipinitialspace=True, usecols=fields
     )
     grouped_cilia = cilia_df.groupby(["ImageNumber"])
 
@@ -392,9 +392,9 @@ def main():
     valid_cilia_df = pd.DataFrame(valid_cilia)
     cent_to_cilia_df = pd.DataFrame(full_cent_to_cilia)
 
-    convert_dict_to_csv(c2c_output, join(OUTPUT_CSV_DIR_PATH,"c2coutput.csv"))
-    valid_cent_df.to_csv(join(OUTPUT_CSV_DIR_PATH,"new_cent.csv"))
-    valid_cilia_df.to_csv(join(OUTPUT_CSV_DIR_PATH,"new_cilia.csv"))
+    convert_dict_to_csv(c2c_output, join(OUTPUT_CSV_DIR_PATH, "c2coutput.csv"))
+    valid_cent_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "new_cent.csv"))
+    valid_cilia_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "new_cilia.csv"))
     cent_to_cilia_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "cent2cilia.csv"))
 
 

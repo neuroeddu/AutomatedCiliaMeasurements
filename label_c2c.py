@@ -3,7 +3,10 @@ from PIL import Image, ImageDraw
 import argparse
 from os.path import join
 
-def draw_things(cur_nuc, cur_cent, img, new_list_cell, new_list_centriole, grayscale_num):
+
+def draw_things(
+    cur_nuc, cur_cent, img, new_list_cell, new_list_centriole, grayscale_num
+):
 
     nuc_x = int(new_list_cell[int(cur_nuc) - 1][0])
     nuc_y = int(new_list_cell[int(cur_nuc) - 1][1])
@@ -13,8 +16,8 @@ def draw_things(cur_nuc, cur_cent, img, new_list_cell, new_list_centriole, grays
     d = ImageDraw.Draw(img)
 
     # NOTE only one number for fill here because they're grayscale images and the fill needs to be grayscale too
-    d.text((int(nuc_x), int(nuc_y)), str(cur_nuc), fill=(255)) 
-    d.text((int(cent_x), int(cent_y)), str(cur_cent), fill=(grayscale_num)) 
+    d.text((int(nuc_x), int(nuc_y)), str(cur_nuc), fill=(255))
+    d.text((int(cent_x), int(cent_y)), str(cur_cent), fill=(grayscale_num))
     line_xy = [(int(nuc_x), int(nuc_y)), (int(cent_x), int(cent_y))]
     d.line(line_xy, fill=(255))
 
@@ -48,7 +51,7 @@ def main():
     fields = ["ImageNumber", "Location_Center_X", "Location_Center_Y"]
 
     cell_df = pd.read_csv(
-        join(CSV_FOLDER,"MyExpt_Nucleus.csv"), skipinitialspace=True, usecols=fields
+        join(CSV_FOLDER, "MyExpt_Nucleus.csv"), skipinitialspace=True, usecols=fields
     )
     grouped_cell = cell_df.groupby(["ImageNumber"])
 
@@ -58,11 +61,13 @@ def main():
     grouped_cilia = cilia_df.groupby(["ImageNumber"])
 
     fields_c2c = ["ImageNumber", "Nucleus", "Centriole", "Cilia"]
-    associate_df = pd.read_csv(join(args["c2c"], "c2coutput.csv"), skipinitialspace=True, usecols=fields_c2c)
+    associate_df = pd.read_csv(
+        join(args["c2c"], "c2coutput.csv"), skipinitialspace=True, usecols=fields_c2c
+    )
     grouped_associates = associate_df.groupby(["ImageNumber"])
 
     centriole_df = pd.read_csv(
-        join(CSV_FOLDER,"MyExpt_Centriole.csv"), skipinitialspace=True, usecols=fields
+        join(CSV_FOLDER, "MyExpt_Centriole.csv"), skipinitialspace=True, usecols=fields
     )
     grouped_centriole = centriole_df.groupby(["ImageNumber"])
 
@@ -112,20 +117,27 @@ def main():
                         float(split_cent[0]),
                         img,
                         new_list_cell,
-                        new_list_centriole, 125
+                        new_list_centriole,
+                        125,
                     )
                     draw_things(
                         cur_nuc,
                         float(split_cent[1]),
                         img,
                         new_list_cell,
-                        new_list_centriole, 125
+                        new_list_centriole,
+                        125,
                     )
 
                 # If single centriole, paint
                 else:
                     draw_things(
-                        cur_nuc, float(cur_cent), img, new_list_cell, new_list_centriole, 125
+                        cur_nuc,
+                        float(cur_cent),
+                        img,
+                        new_list_cell,
+                        new_list_centriole,
+                        125,
                     )
 
             cur_cilia = associate[2]
@@ -139,6 +151,7 @@ def main():
         # Save image
         new_path = join(args["output"], ("COMBINED_LABEL_" + f"{num:04}" + ".tiff"))
         img.save(new_path)
+
 
 if __name__ == "__main__":
     main()

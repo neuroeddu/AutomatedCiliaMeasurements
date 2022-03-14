@@ -21,10 +21,29 @@ subprocess.run(["cd", SCRIPT_PATH])
 if result.returncode:
     print("poetry not found. installing poetry")
     # we're on microsoft
-    if os.name == 'nt': 
-        subprocess.run(['(Invoke-WebRequest', 'Uri', 'https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py', '-UseBasicParsing).Content', '|', 'python', '-'])
+    if os.name == "nt":
+        subprocess.run(
+            [
+                "(Invoke-WebRequest",
+                "Uri",
+                "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
+                "-UseBasicParsing).Content",
+                "|",
+                "python",
+                "-",
+            ]
+        )
     else:
-        subprocess.run(['curl', '-sSL', 'https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py', '|', 'python', '-'])
+        subprocess.run(
+            [
+                "curl",
+                "-sSL",
+                "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
+                "|",
+                "python",
+                "-",
+            ]
+        )
 
 result = subprocess.run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
 installed_pkg = result.stdout
@@ -33,17 +52,17 @@ if "!" in installed_pkg:
     print("installing necessary packages")
     subprocess.run(["poetry", "install", "--no-dev"])
 
-#dir_out = input("ready to start! where should everything go? ")
-dir_out = '/Users/sneha/Desktop/cilia_TEST'
+# dir_out = input("ready to start! where should everything go? ")
+dir_out = "/Users/sneha/Desktop/cilia_TEST"
 
 # if not os.path.exists(dir_out):
 #     os.makedirs(dir_out)
 
-#csvs_in = input("what is the path to your cellprofiler output csvs? ")
-#images_in = input("what is the path to your cellprofiler output images? ")
+# csvs_in = input("what is the path to your cellprofiler output csvs? ")
+# images_in = input("what is the path to your cellprofiler output images? ")
 
-csvs_in = '/Users/sneha/Desktop/cilia_TEST/spreadsheets_im_output'
-images_in = '/Users/sneha/Desktop/cilia_TEST/im_output'
+csvs_in = "/Users/sneha/Desktop/cilia_TEST/spreadsheets_im_output"
+images_in = "/Users/sneha/Desktop/cilia_TEST/im_output"
 
 print("running center2center script")
 c2c_output_path = os.path.join(dir_out, "c2c_output")
@@ -52,7 +71,17 @@ if not os.path.exists(c2c_output_path):
     os.mkdir(c2c_output_path)
 
 _ = subprocess.run(
-    ["poetry", "run", "python", "center2center.py", "-i", csvs_in, "-o", c2c_output_path], capture_output=True
+    [
+        "poetry",
+        "run",
+        "python",
+        "center2center.py",
+        "-i",
+        csvs_in,
+        "-o",
+        c2c_output_path,
+    ],
+    capture_output=True,
 )
 
 # CLUSTERING
@@ -60,7 +89,9 @@ clustering = input("would you like to run clustering? y/n ")
 if clustering == "y":
     subprocess.run(
         [
-            "poetry", "run", "python", 
+            "poetry",
+            "run",
+            "python",
             "clustering.py",
             "-m",
             os.path.join(csvs_in, "MyExpt_Cilia.csv"),
@@ -75,20 +106,23 @@ visualize_cprof = input(
 )
 if visualize_cprof == "y":
 
-
     cprof_vis_output = os.path.join(dir_out, "cprof_vis_output")
 
     if not os.path.exists(cprof_vis_output):
         os.mkdir(cprof_vis_output)
 
-    command_to_run = ["poetry", "run", "python", 
-            "label_cprof_im.py",
-            "-i",
-            csvs_in,
-            "-m",
-            images_in,
-            "-o",
-            cprof_vis_output]
+    command_to_run = [
+        "poetry",
+        "run",
+        "python",
+        "label_cprof_im.py",
+        "-i",
+        csvs_in,
+        "-m",
+        images_in,
+        "-o",
+        cprof_vis_output,
+    ]
 
     num = (
         input(
@@ -98,7 +132,7 @@ if visualize_cprof == "y":
     )
 
     if num:
-        command_to_run.extend(['-n', num])
+        command_to_run.extend(["-n", num])
 
     centriole = (
         input(
@@ -108,17 +142,24 @@ if visualize_cprof == "y":
     )
 
     if centriole:
-        command_to_run.extend(['-c', 'y'])
+        command_to_run.extend(["-c", "y"])
 
-    
-    _ = subprocess.run(command_to_run, capture_output=True
-    )
+    _ = subprocess.run(command_to_run, capture_output=True)
 
 # DATA TABLE
 data_tbl = input("would you like to make a data table? y/n ")
 if data_tbl == "y":
     subprocess.run(
-        ["poetry", "run", "python", "data_table.py", "-i", csvs_in, "-c", c2c_output_path]
+        [
+            "poetry",
+            "run",
+            "python",
+            "data_table.py",
+            "-i",
+            csvs_in,
+            "-c",
+            c2c_output_path,
+        ]
     )
 
 # LABEL C2C
@@ -130,18 +171,20 @@ if c2c_vis == "y":
     if not os.path.exists(c2c_vis_output):
         os.mkdir(c2c_vis_output)
 
-    command_to_run=[
-            "poetry", "run", "python", 
-            "label_c2c.py",
-            "-i",
-            csvs_in,
-            "-m",
-            images_in,
-            "-o",
-            c2c_vis_output,
-            "-c",
-            c2c_output_path,
-        ]
+    command_to_run = [
+        "poetry",
+        "run",
+        "python",
+        "label_c2c.py",
+        "-i",
+        csvs_in,
+        "-m",
+        images_in,
+        "-o",
+        c2c_vis_output,
+        "-c",
+        c2c_output_path,
+    ]
 
     num = (
         input(
@@ -151,14 +194,13 @@ if c2c_vis == "y":
     )
 
     if num:
-        command_to_run.extend(['-n', num])
+        command_to_run.extend(["-n", num])
     subprocess.run(command_to_run, capture_output=True)
 
 
 # LABEL CILIA
 organelle_label = input("would you like to label one organelle type? y/n ")
 if organelle_label == "y":
-    
 
     channel = input(
         "input channel you want to label: 01 for nuclei, 02 for cilia, 03 for centriole "
@@ -169,21 +211,23 @@ if organelle_label == "y":
     if not os.path.exists(channel_lbl):
         os.mkdir(channel_lbl)
 
-    command_to_run=[
-            "poetry", "run", "python", 
-            "label_valid_cilia.py",
-            "-m",
-            csvs_in,
-            "-g",
-            images_in,
-            "-o",
-            channel_lbl,
-            "-a",
-            channel,
-        ]
+    command_to_run = [
+        "poetry",
+        "run",
+        "python",
+        "label_valid_cilia.py",
+        "-m",
+        csvs_in,
+        "-g",
+        images_in,
+        "-o",
+        channel_lbl,
+        "-a",
+        channel,
+    ]
 
-    if channel != '01':
-        command_to_run.extend(['-c', c2c_output_path])
+    if channel != "01":
+        command_to_run.extend(["-c", c2c_output_path])
 
     num = (
         input(
@@ -193,7 +237,7 @@ if organelle_label == "y":
     )
 
     if num:
-        command_to_run.extend(['-n', num])
+        command_to_run.extend(["-n", num])
 
     subprocess.run(command_to_run, capture_output=True)
 
@@ -209,7 +253,9 @@ if accuracy == "y":
 
     subprocess.run(
         [
-            "poetry", "run", "python", 
+            "poetry",
+            "run",
+            "python",
             "check_accuracy.py",
             "-t",
             true_results,
