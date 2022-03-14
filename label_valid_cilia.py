@@ -2,36 +2,39 @@
 import pandas as pd
 from PIL import Image, ImageDraw
 import argparse
+import os 
 
+# TODO POETRY INSTALL AND MAKE IT WORK WITHIN POETRY
+
+CHANNEL_DICT = {
+        "01": "Nucleus",
+        "02": "Cilia",
+        "03": "Centriole"
+    }
 
 def label_im(coordinate_list, im, num, channel, output_path):
     img = Image.open(im)
 
     # Writes number onto image at center
-    for i, val in enumerate(coordinate_list):
+    for _, val in enumerate(coordinate_list):
+
         x_coord = val[1]
         y_coord = val[2]
         d = ImageDraw.Draw(img)
-        write_num = str(i + 1)
+        write_num = str(val[0] + 1)
         d.text((x_coord, y_coord), write_num, fill=(255, 0, 0, 255))
 
     path = make_paths(num, True, channel, output_path)
     img.save(path)
 
 
-def make_paths(num, channel, label, path):
-    CHANNEL_DICT = {
-        "01": "NucleusOverlay",
-        "02": "CiliaOverlay",
-        "03": "CentrioleOverlay",
-    }
-
-    path = (
-        path
-        + CHANNEL_DICT[channel]
+def make_paths(num, label, channel, path):
+    path = os.path.join(path, (
+        CHANNEL_DICT[channel]
+        + 'Overlay'
         + f"{num:04}"
         + ("_LABELED.tiff" if label else ".tiff")
-    )
+    ))
     return path
 
 
@@ -57,7 +60,7 @@ def parse_args():
         required=False,
     )
     parser.add_argument(
-        "-h",
+        "-a",
         "--channel",
         help="channel number for images (01 is nuclei, 02 is cilia, 03 is centriole)",
         required=True,
@@ -69,9 +72,10 @@ def parse_args():
 def main():
 
     args = parse_args()
+    measurements_path = os.path.join(args["measurements"],'MyExpt_')+CHANNEL_DICT[args['channel']]+'.csv'
 
     measurements_df = pd.read_csv(
-        args["measurements"],
+        measurements_path,
         skipinitialspace=True,
         usecols=[
             "ImageNumber",
@@ -83,7 +87,9 @@ def main():
 
     # if not all measurements are valid, merge
     if args.get("c2c"):
-        valid_df = pd.read_csv(args["c2c"], skipinitialspace=True)
+        c2c_result_type = 'new_cilia.csv' if args['channel']=='02' else 'new_cent.csv'
+        c2c_path = os.path.join(args.get("c2c"), c2c_result_type)
+        valid_df = pd.read_csv(c2c_path, skipinitialspace=True)
         valid_df = valid_df.rename(columns={"0": "ImageNumber", "1": "ObjectNumber"})
         measurements_df = valid_df.merge(
             measurements_df, on=["ImageNumber", "ObjectNumber"]
@@ -91,12 +97,13 @@ def main():
 
     grouped_cilia = measurements_df.groupby(["ImageNumber"])
     # Get number of images, either from the number inputted or from the total number of images
-    images = int(args.get("num")) or measurements_df.ImageNumber.iat[-1]
+    images = args.get("num") or measurements_df.ImageNumber.iat[-1]
+    images = int(images)
 
     for num in range(1, images + 1):
         # Get list of coords to plot
         coords_df = grouped_cilia.get_group(num)
-        coords_df.drop(["ImageNumber", "ObjectNumber"], axis=1, inplace=True)
+        coords_df.drop(["ImageNumber"], axis=1, inplace=True)
         coords_list = coords_df.values.tolist()
 
         # Get path and
