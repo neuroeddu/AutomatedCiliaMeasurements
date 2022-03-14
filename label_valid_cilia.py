@@ -73,9 +73,7 @@ def main():
 
     args = parse_args()
     measurements_path = (
-        join(args["measurements"], "MyExpt_")
-        + CHANNEL_DICT[args["channel"]]
-        + ".csv"
+        join(args["measurements"], "MyExpt_") + CHANNEL_DICT[args["channel"]] + ".csv"
     )
 
     measurements_df = pd.read_csv(
