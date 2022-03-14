@@ -2,7 +2,7 @@
 import pandas as pd
 from PIL import Image, ImageDraw
 import argparse
-import os
+from os.path import join
 
 # TODO POETRY INSTALL AND MAKE IT WORK WITHIN POETRY
 
@@ -26,7 +26,7 @@ def label_im(coordinate_list, im, num, channel, output_path):
 
 
 def make_paths(num, label, channel, path):
-    path = os.path.join(
+    path = join(
         path,
         (
             CHANNEL_DICT[channel]
@@ -73,7 +73,7 @@ def main():
 
     args = parse_args()
     measurements_path = (
-        os.path.join(args["measurements"], "MyExpt_")
+        join(args["measurements"], "MyExpt_")
         + CHANNEL_DICT[args["channel"]]
         + ".csv"
     )
@@ -92,7 +92,7 @@ def main():
     # if not all measurements are valid, merge
     if args.get("c2c"):
         c2c_result_type = "new_cilia.csv" if args["channel"] == "02" else "new_cent.csv"
-        c2c_path = os.path.join(args.get("c2c"), c2c_result_type)
+        c2c_path = join(args.get("c2c"), c2c_result_type)
         valid_df = pd.read_csv(c2c_path, skipinitialspace=True)
         valid_df = valid_df.rename(columns={"0": "ImageNumber", "1": "ObjectNumber"})
         measurements_df = valid_df.merge(

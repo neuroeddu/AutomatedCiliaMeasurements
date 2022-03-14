@@ -1,7 +1,7 @@
 import pandas as pd
 import csv
 import argparse
-
+from os.path import join
 # get true results and results from c2c CSVs, and specify output path
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--true", help="path to true results", required=True)
@@ -46,7 +46,7 @@ for num in range(1, num_im + 1):
     )
 
 # Write to result csv
-with open(args["output"] + "/accuracy_checker.csv", "w") as f:
+with open(join(args["output"],"/accuracy_checker.csv"), "w") as f:
     write = csv.writer(f)
     write.writerow(["Image", "True positives", "False positives", "False negatives"])
     for row in result_li:

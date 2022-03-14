@@ -1,7 +1,7 @@
 import pandas as pd
 from PIL import Image, ImageDraw
 import argparse
-import os
+from os.path import join
 
 # Makes paths for us to be able to find init imgs / for images to go
 def make_paths(num, channel, label, path):
@@ -10,7 +10,7 @@ def make_paths(num, channel, label, path):
         "02": "CiliaOverlay",
         "03": "CentrioleOverlay",
     }
-    path = os.path.join(
+    path = join(
         path,
         (CHANNEL_DICT[channel] + f"{num:04}" + ("_LABELED.tiff" if label else ".tiff")),
     )
