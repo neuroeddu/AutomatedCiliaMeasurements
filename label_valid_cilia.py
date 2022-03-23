@@ -106,7 +106,7 @@ def main():
 
         coords_list = coords_df.values.tolist()
 
-        # Get path and label 
+        # Get path and label
         im_path = make_paths(num, False, args["channel"], args["images"])
         label_im(coords_list, im_path, num, args["channel"], args["output"])
 

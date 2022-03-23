@@ -207,6 +207,7 @@ def cilia_area_to_len(valid_cilia_df, cilia_df, **kwargs):
         "Cilia length",
     ]
 
+
 # NOTE This assumes the cell-> centriole, centriole -> cilia
 # Calculate ratio of number of cilia to number of centrioles
 def nuc_cilia_to_nuc_cent(grouped_associates, num_im, image_df, **kwargs):
@@ -216,9 +217,9 @@ def nuc_cilia_to_nuc_cent(grouped_associates, num_im, image_df, **kwargs):
     nuc_count = image_df["Count_Nucleus"].values.tolist()
 
     for num in range(1, num_im + 1):
-        nuc_im = nuc_count[num-1]
+        nuc_im = nuc_count[num - 1]
         associates_list = make_lists(num, grouped_associates)
-        # no cent means that last nuc in associates list will be offset to the actual number of nuclei 
+        # no cent means that last nuc in associates list will be offset to the actual number of nuclei
         # this is a list of the form
         cilia_present = 0
         for row in associates_list:
