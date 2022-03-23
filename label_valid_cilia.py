@@ -4,8 +4,6 @@ from PIL import Image, ImageDraw
 import argparse
 from os.path import join
 
-# TODO POETRY INSTALL AND MAKE IT WORK WITHIN POETRY
-
 CHANNEL_DICT = {"01": "Nucleus", "02": "Cilia", "03": "Centriole"}
 
 
@@ -13,12 +11,11 @@ def label_im(coordinate_list, im, num, channel, output_path):
     img = Image.open(im)
 
     # Writes number onto image at center
-    for _, val in enumerate(coordinate_list):
-
-        x_coord = val[1]
-        y_coord = val[2]
+    for val in coordinate_list:
+        x_coord = val[2]
+        y_coord = val[3]
         d = ImageDraw.Draw(img)
-        write_num = str(val[0] + 1)
+        write_num = str(val[1])
         d.text((x_coord, y_coord), write_num, fill=(255, 0, 0, 255))
 
     path = make_paths(num, True, channel, output_path)
@@ -106,9 +103,10 @@ def main():
         # Get list of coords to plot
         coords_df = grouped_cilia.get_group(num)
         coords_df.drop(["ImageNumber"], axis=1, inplace=True)
+
         coords_list = coords_df.values.tolist()
 
-        # Get path and
+        # Get path and label 
         im_path = make_paths(num, False, args["channel"], args["images"])
         label_im(coords_list, im_path, num, args["channel"], args["output"])
 

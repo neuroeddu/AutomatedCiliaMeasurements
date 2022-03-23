@@ -7,7 +7,6 @@ from scipy.spatial import KDTree
 import argparse
 from os.path import join
 
-
 def make_lists(im_num, grouped):
     """
     Group dataframe into only rows where image is im_num and return the values in a list

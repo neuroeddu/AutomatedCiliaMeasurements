@@ -47,7 +47,7 @@ for num in range(1, num_im + 1):
     )
 
 # Write to result csv
-with open(join(args["output"], "/accuracy_checker.csv"), "w") as f:
+with open(join(args["output"], "accuracy_checker.csv"), "w") as f:
     write = csv.writer(f)
     write.writerow(["Image", "True positives", "False positives", "False negatives"])
     for row in result_li:
