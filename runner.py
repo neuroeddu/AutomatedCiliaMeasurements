@@ -9,15 +9,17 @@ CHANNEL_DICT = {
     "03": "CentrioleOverlay",
 }
 
+
 def run(command, **kwargs):
     if os.name == "nt":
-        command=['powershell', '-Command']+command
+        command = ["powershell", "-Command"] + command
     return subprocess.run(command, **kwargs)
+
 
 if sys.version_info.major != 3 or sys.version_info.minor != 9:
     print("incorrect python version. this script needs python 3.9 to be installed.")
 print("checking if poetry is installed")
-result=None
+result = None
 
 try:
     result = run(["poetry", "-v"], capture_output=True)
@@ -45,16 +47,15 @@ if result is None or result.returncode:
             ]
         )
     else:
-        run(
-            [
-                "curl",
-                "-sSL",
-                "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
-                "|",
-                "python",
-                "-",
-            ]
-        )
+        curl = subprocess.Popen(
+        [
+            "curl",
+            "-sSL",
+            "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
+            ],
+            stdout=subprocess.PIPE,
+         )
+        run(['python', '-'], stdin=curl.stdout)
 
 result = run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
 installed_pkg = result.stdout
