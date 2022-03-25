@@ -48,14 +48,14 @@ if result is None or result.returncode:
         )
     else:
         curl = subprocess.Popen(
-        [
-            "curl",
-            "-sSL",
-            "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
+            [
+                "curl",
+                "-sSL",
+                "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
             ],
             stdout=subprocess.PIPE,
-         )
-        run(['python', '-'], stdin=curl.stdout)
+        )
+        run(["python", "-"], stdin=curl.stdout)
 
 result = run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
 installed_pkg = result.stdout
