@@ -9,23 +9,34 @@ CHANNEL_DICT = {
     "03": "CentrioleOverlay",
 }
 
+def run(command, **kwargs):
+    if os.name == "nt":
+        command=['powershell', '-Command']+command
+    return subprocess.run(command, **kwargs)
+
 if sys.version_info.major != 3 or sys.version_info.minor != 9:
     print("incorrect python version. this script needs python 3.9 to be installed.")
 print("checking if poetry is installed")
-result = subprocess.run(["poetry", "-v"], capture_output=True)
+result=None
 
-subprocess.run(["cd", SCRIPT_PATH])
+try:
+    result = run(["poetry", "-v"], capture_output=True)
+except:
+    pass
+
+run(["cd", SCRIPT_PATH])
 
 # TODO test this!
 
-if result.returncode:
+if result is None or result.returncode:
+
     print("poetry not found. installing poetry")
-    # we're on microsoft
+    # we're on windows
     if os.name == "nt":
-        subprocess.run(
+        run(
             [
                 "(Invoke-WebRequest",
-                "Uri",
+                "-Uri",
                 "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py",
                 "-UseBasicParsing).Content",
                 "|",
@@ -34,7 +45,7 @@ if result.returncode:
             ]
         )
     else:
-        subprocess.run(
+        run(
             [
                 "curl",
                 "-sSL",
@@ -45,24 +56,20 @@ if result.returncode:
             ]
         )
 
-result = subprocess.run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
+result = run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
 installed_pkg = result.stdout
 
 if "!" in installed_pkg:
     print("installing necessary packages")
-    subprocess.run(["poetry", "install", "--no-dev"])
+    run(["poetry", "install", "--no-dev"])
 
-# dir_out = input("ready to start! where should everything go? ")
-dir_out = "/Users/sneha/Desktop/cilia_TEST"
+dir_out = input("ready to start! where should everything go? ")
 
-# if not os.path.exists(dir_out):
-#     os.makedirs(dir_out)
+if not os.path.exists(dir_out):
+    os.makedirs(dir_out)
 
-# csvs_in = input("what is the path to your cellprofiler output csvs? ")
-# images_in = input("what is the path to your cellprofiler output images? ")
-
-csvs_in = "/Users/sneha/Desktop/cilia_TEST/spreadsheets_im_output"
-images_in = "/Users/sneha/Desktop/cilia_TEST/im_output"
+csvs_in = input("what is the path to your cellprofiler output csvs? ")
+images_in = input("what is the path to your cellprofiler output images? ")
 
 print("running center2center script")
 c2c_output_path = os.path.join(dir_out, "c2c_output")
@@ -70,7 +77,7 @@ c2c_output_path = os.path.join(dir_out, "c2c_output")
 if not os.path.exists(c2c_output_path):
     os.mkdir(c2c_output_path)
 
-_ = subprocess.run(
+run(
     [
         "poetry",
         "run",
@@ -87,7 +94,7 @@ _ = subprocess.run(
 # CLUSTERING
 clustering = input("would you like to run clustering? y/n ")
 if clustering == "y":
-    subprocess.run(
+    run(
         [
             "poetry",
             "run",
@@ -144,12 +151,12 @@ if visualize_cprof == "y":
     if centriole:
         command_to_run.extend(["-c", "y"])
 
-    _ = subprocess.run(command_to_run, capture_output=True)
+    run(command_to_run, capture_output=True)
 
 # DATA TABLE
 data_tbl = input("would you like to make a data table? y/n ")
 if data_tbl == "y":
-    subprocess.run(
+    run(
         [
             "poetry",
             "run",
@@ -195,7 +202,8 @@ if c2c_vis == "y":
 
     if num:
         command_to_run.extend(["-n", num])
-    subprocess.run(command_to_run, capture_output=True)
+
+    run(command_to_run, capture_output=True)
 
 
 # LABEL CILIA
@@ -239,7 +247,7 @@ if organelle_label == "y":
     if num:
         command_to_run.extend(["-n", num])
 
-    subprocess.run(command_to_run, capture_output=True)
+    run(command_to_run, capture_output=True)
 
 
 # CHECK ACCURACY
@@ -251,7 +259,7 @@ if accuracy == "y":
     if not os.path.exists(accuracy_path):
         os.mkdir(accuracy_path)
 
-    subprocess.run(
+    run(
         [
             "poetry",
             "run",
