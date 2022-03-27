@@ -174,7 +174,7 @@ if data_tbl == "y":
             "-c",
             c2c_output_path,
             "-o",
-            data_tbl_output
+            data_tbl_output,
         ]
     )
 

@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 from os.path import join
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-i", "--input", help="folder with cellprofiler CSVs path", required=True
@@ -38,12 +39,14 @@ result_dict = {
     "avg cilia area": -1,
 }
 
-fields = ["cilia num",
+fields = [
+    "cilia num",
     "nuclei num",
     "present cilia/nuclei",
     "avg nuclei area",
     "avg cilia length",
-    "avg cilia area"]
+    "avg cilia area",
+]
 
 # Calculate measurements and place into output dictionary
 result_dict["avg nuclei area"] = cell_df["AreaShape_Area"].mean()
@@ -73,4 +76,4 @@ print(result_dict)
 df_result = pd.DataFrame.from_dict([result_dict])
 
 print(df_result)
-df_result.to_csv(join(OUTPUT_PATH,'data_table.csv'))
+df_result.to_csv(join(OUTPUT_PATH, "data_table.csv"))
