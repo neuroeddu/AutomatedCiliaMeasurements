@@ -157,6 +157,12 @@ if visualize_cprof == "y":
 # DATA TABLE
 data_tbl = input("would you like to make a data table? y/n ")
 if data_tbl == "y":
+
+    data_tbl_output = os.path.join(dir_out, "data_tbl")
+
+    if not os.path.exists(data_tbl_output):
+        os.mkdir(data_tbl_output)
+
     run(
         [
             "poetry",
@@ -167,6 +173,8 @@ if data_tbl == "y":
             csvs_in,
             "-c",
             c2c_output_path,
+            "-o",
+            data_tbl_output
         ]
     )
 

@@ -37,21 +37,30 @@ for num in range(1, num_im + 1):
     false_neg = true_df_im["Coordinates"]
     false_neg.dropna(inplace=True)
 
-    true_pos=c2c_df_im.shape[0] - false_pos.shape[0]
+    true_pos = c2c_df_im.shape[0] - false_pos.shape[0]
     result_li.append(
         [
             num,
             true_pos,
             false_pos.shape[0],
             false_neg.shape[0],
-            false_pos.shape[0]/(false_pos.shape[0]+true_pos),
-            false_neg.shape[0]/(false_neg.shape[0]+true_pos)
+            false_pos.shape[0] / (false_pos.shape[0] + true_pos),
+            false_neg.shape[0] / (false_neg.shape[0] + true_pos),
         ]
     )
 
 # Write to result csv
 with open(join(args["output"], "accuracy_checker.csv"), "w") as f:
     write = csv.writer(f)
-    write.writerow(["Image", "True positives", "False positives", "False negatives", "False positive rate", "False negative rate"])
+    write.writerow(
+        [
+            "Image",
+            "True positives",
+            "False positives",
+            "False negatives",
+            "False positive rate",
+            "False negative rate",
+        ]
+    )
     for row in result_li:
         write.writerow(row)

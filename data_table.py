@@ -1,15 +1,17 @@
 import pandas as pd
 import argparse
-
+from os.path import join
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-i", "--input", help="folder with cellprofiler CSVs path", required=True
 )
 parser.add_argument("-c", "--c2c", help="path to c2c output CSVs", required=True)
+parser.add_argument("-o", "--output", help="path to output", required=True)
 args = vars(parser.parse_args())
 
 CSV_FOLDER = args["input"]
 C2C_OUTPUT_PATH = args["c2c"]
+OUTPUT_PATH = args["output"]
 
 # Set up CSVs into dataframes
 cell_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Nucleus.csv", skipinitialspace=True)
@@ -36,6 +38,13 @@ result_dict = {
     "avg cilia area": -1,
 }
 
+fields = ["cilia num",
+    "nuclei num",
+    "present cilia/nuclei",
+    "avg nuclei area",
+    "avg cilia length",
+    "avg cilia area"]
+
 # Calculate measurements and place into output dictionary
 result_dict["avg nuclei area"] = cell_df["AreaShape_Area"].mean()
 
@@ -61,3 +70,7 @@ nuc_without_cilia = associate_df[associate_df["Cilia"].astype(int) >= 0]
 result_dict["present cilia/nuclei"] = len(nuc_without_cilia) / len(associate_df)
 
 print(result_dict)
+df_result = pd.DataFrame.from_dict([result_dict])
+
+print(df_result)
+df_result.to_csv(join(OUTPUT_PATH,'data_table.csv'))
