@@ -7,6 +7,7 @@ from scipy.spatial import KDTree
 import argparse
 from os.path import join
 
+
 def make_lists(im_num, grouped):
     """
     Group dataframe into only rows where image is im_num and return the values in a list
@@ -59,9 +60,6 @@ def nearest_child(parent_list, child_list, arity, threshold=float("inf")):
     return child_to_parent, removed
 
 
-
-
-
 def convert_dict_to_csv(c2c_output, output_path):
     """
     Convert our output into a csv
@@ -101,36 +99,39 @@ def convert_dict_to_csv(c2c_output, output_path):
 
 def output_to_csv(centriole_to_cell, cilia_to_cell, num, cell_list):
     c2c_output_formatted = [
-            {
-                "num": num,
-                "cell": cell,
-                "centrioles": [],
-                "path_length_centrioles": [],
-                "path_length_cilia": float("inf"),
-                "cilia": None,
-            }
-            for cell in range(len(cell_list) + 1)
-        ]
+        {
+            "num": num,
+            "cell": cell,
+            "centrioles": [],
+            "path_length_centrioles": [],
+            "path_length_cilia": float("inf"),
+            "cilia": None,
+        }
+        for cell in range(len(cell_list) + 1)
+    ]
 
-    for x,cell_dict in enumerate(centriole_to_cell):
-        if cell_dict['path_length']== -1:
-            continue 
-        cent=x+1
-        cell_to_add_to=cell_dict['parent']
-        path_to_add_to=cell_dict['path_length']
+    for x, cell_dict in enumerate(centriole_to_cell):
+        if cell_dict["path_length"] == -1:
+            continue
+        cent = x + 1
+        cell_to_add_to = cell_dict["parent"]
+        path_to_add_to = cell_dict["path_length"]
         c2c_output_formatted[cell_to_add_to]["centrioles"].append(cent)
-        c2c_output_formatted[cell_to_add_to]["path_length_centrioles"].append(path_to_add_to)
+        c2c_output_formatted[cell_to_add_to]["path_length_centrioles"].append(
+            path_to_add_to
+        )
 
     for x, cell_dict in enumerate(cilia_to_cell):
-        if cell_dict['path_length']== -1:
-            continue 
-        cilia=x+1
-        cell_to_add_to=cell_dict['parent']
-        path_to_add_to=cell_dict['path_length']
-        c2c_output_formatted[cell_to_add_to]["cilia"]=cilia
-        c2c_output_formatted[cell_to_add_to]["path_length_cilia"]=path_to_add_to
+        if cell_dict["path_length"] == -1:
+            continue
+        cilia = x + 1
+        cell_to_add_to = cell_dict["parent"]
+        path_to_add_to = cell_dict["path_length"]
+        c2c_output_formatted[cell_to_add_to]["cilia"] = cilia
+        c2c_output_formatted[cell_to_add_to]["path_length_cilia"] = path_to_add_to
 
     return c2c_output_formatted
+
 
 def convert_dict_to_csv(c2c_output, output_path):
     """
@@ -168,6 +169,7 @@ def convert_dict_to_csv(c2c_output, output_path):
         float_format="%.10g",
     )
 
+
 def remove_noise(x_list, noise_list, num):
     """
     Make a list of indices of x list that are attached to some y
@@ -187,6 +189,7 @@ def remove_noise(x_list, noise_list, num):
 
     return valid_list, true_idx_mapping
 
+
 def parse_args():
     # get input/output fol using argparse
     parser = argparse.ArgumentParser()
@@ -195,6 +198,7 @@ def parse_args():
     )
     parser.add_argument("-o", "--output", help="output folder path", required=True)
     return vars(parser.parse_args())
+
 
 def main():
 
@@ -222,8 +226,8 @@ def main():
 
     # Make lists for the output
     c2c_output = []
-    valid_cilia =[]
-    valid_cent=[]
+    valid_cilia = []
+    valid_cent = []
     for num in range(1, num_im + 1):
         # Convert groupby objects to list for easy access
         cell_list = make_lists(num, grouped_cell)
@@ -232,27 +236,21 @@ def main():
 
         # Match centrioles to cell (nuclei)
         centriole_to_cell, cent_to_remove = nearest_child(cell_list, centriole_list, 2)
-        
-        _, valid_cent_indices = remove_noise(
-            centriole_list, cent_to_remove, num
-        )
+
+        _, valid_cent_indices = remove_noise(centriole_list, cent_to_remove, num)
         valid_cent_indices = [[idx[0], (idx[1] + 1)] for idx in valid_cent_indices]
         valid_cent += valid_cent_indices
 
         # Match cilia to cells
-        cilia_to_cell, cilia_to_remove = nearest_child(
-            cell_list, cilia_list, 1
-        )
+        cilia_to_cell, cilia_to_remove = nearest_child(cell_list, cilia_list, 1)
 
-        _, valid_cilia_indices = remove_noise(
-            cilia_list, cilia_to_remove, num
-        )
+        _, valid_cilia_indices = remove_noise(cilia_list, cilia_to_remove, num)
         valid_cilia_indices = [[idx[0], (idx[1] + 1)] for idx in valid_cilia_indices]
         valid_cilia += valid_cilia_indices
 
         c2c_formatted = output_to_csv(centriole_to_cell, cilia_to_cell, num, cell_list)
 
-        c2c_output+=c2c_formatted
+        c2c_output += c2c_formatted
 
     valid_cent_df = pd.DataFrame(valid_cent)
     valid_cilia_df = pd.DataFrame(valid_cilia)
@@ -260,6 +258,7 @@ def main():
     convert_dict_to_csv(c2c_output, join(OUTPUT_CSV_DIR_PATH, "c2coutput.csv"))
     valid_cent_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "new_cent.csv"))
     valid_cilia_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "new_cilia.csv"))
+
 
 if __name__ == "__main__":
     main()

@@ -98,10 +98,10 @@ def len_cilia_to_size_nucleus(
 
 # Calculate number of cilia per size for each column
 def how_many_cilia_per_size(grouped_cilia, grouped_valid_cilia, num_im, col_idx):
-    if col_idx==0:
+    if col_idx == 0:
         NUM_BINS = 1000
-    elif col_idx==17:
-        NUM_BINS=7
+    elif col_idx == 17:
+        NUM_BINS = 7
     else:
         NUM_BINS = 500
     result = [[] for bin in range(0, NUM_BINS)]
