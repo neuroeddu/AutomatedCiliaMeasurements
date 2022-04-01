@@ -15,6 +15,7 @@ def draw_things(
     cent_y = new_list_centriole[int(cur_cent) - 1][1]
     d = ImageDraw.Draw(img)
 
+    # NOTE Darker is centriole, lighter is nucleus
     # NOTE only one number for fill here because they're grayscale images and the fill needs to be grayscale too
     d.text((int(nuc_x), int(nuc_y)), str(cur_nuc), fill=(255))
     d.text((int(cent_x), int(cent_y)), str(cur_cent), fill=(grayscale_num))
@@ -107,7 +108,7 @@ def main():
             cur_cent = cur_cent.strip("]")
 
             # Paint centriole(s) if they are there
-            if not "nan" in cur_cent:
+            if cur_cent and not "nan" in cur_cent:
 
                 # If multiple centriole, paint each
                 if "," in cur_cent:
