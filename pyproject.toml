@@ -12,6 +12,7 @@ sklearn = "^0.0"
 Pillow-PIL = "^0.1dev"
 scipy = "^1.8.0"
 matplotlib = "^3.5.1"
+plotly = "5.7.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"

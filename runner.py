@@ -60,7 +60,7 @@ if result is None or result.returncode:
 result = run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
 installed_pkg = result.stdout
 
-if "!" in installed_pkg:
+if "!" in installed_pkg or 'SolverProblemError' in installed_pkg:
     print("installing necessary packages")
     run(["poetry", "install", "--no-dev"])
 
@@ -102,9 +102,9 @@ if clustering == "y":
             "python",
             "clustering.py",
             "-m",
-            os.path.join(csvs_in, "MyExpt_Cilia.csv"),
+            csvs_in,
             "-c",
-            os.path.join(c2c_output_path, "new_cilia.csv"),
+            os.path.join(c2c_output_path, "c2coutput.csv"),
         ]
     )
 
