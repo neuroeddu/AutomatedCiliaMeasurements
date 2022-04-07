@@ -95,8 +95,7 @@ run(
 # CLUSTERING
 clustering = input("would you like to run clustering? y/n ")
 if clustering == "y":
-    run(
-        [
+    command_to_run = [
             "poetry",
             "run",
             "python",
@@ -106,7 +105,38 @@ if clustering == "y":
             "-c",
             os.path.join(c2c_output_path, "c2coutput.csv"),
         ]
+    heirarchical = (
+        input(
+            "enter YES if you would like to produce dendrograms. if not, press ENTER "
+        )
+        or None
     )
+
+    if heirarchical:
+        command_to_run.extend(["-hr", "y"])
+
+    xmeans = (
+        input(
+            "enter YES if you would like to use x-means clustering. if not, press ENTER "
+        )
+        or None
+    )
+
+    if xmeans:
+        command_to_run.extend(["-x", "y"])
+
+    pca = (
+        input(
+            "enter YES if you would like to show most useful features. if not, press ENTER "
+        )
+        or None
+    )
+
+    if pca:
+        command_to_run.extend(["-p", "y"])
+
+    run(command_to_run)
+    
 
 # CELLPROFILER VISUALIZER
 visualize_cprof = input(

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import random
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
@@ -9,14 +9,20 @@ import argparse
 from os.path import join
 import plotly.graph_objs as go
 from plotly.offline import plot
+import matplotlib.pyplot as plt
+import scipy.cluster.hierarchy as shc
+
 
 # parse input arguments
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-m", "--measurements", help="path to CellProfiler CSVs", required=True
 )
-# TODO change runner to add these args
+
 parser.add_argument("-c", "--c2c", help="path to c2c CSV", required=True)
+parser.add_argument("-x", "--xmeans", help="whether xmeans should be included", required=True)
+parser.add_argument("-p", "--pca_features", help="whether pca features should be included", required=True)
+parser.add_argument("-hr", "--heirarchical", help="whether dendrograms should be included", required=True)
 args = vars(parser.parse_args())
 
 # params we want to check
@@ -91,6 +97,7 @@ scores = ["precision", "recall"]
 scaler = StandardScaler()
 clf = GridSearchCV(KMeans(), tuned_parameters)
 pca_2d = PCA(n_components=2)
+pca_7d = PCA(n_components=7)
 
 for num in range(1, num_im + 1):
     # Get correct groups
@@ -199,55 +206,78 @@ for num in range(1, num_im + 1):
     full_df = full_df.merge(measurements_cent_1, on=["Cent1"])
     full_df = full_df.merge(measurements_cent_2, on=["Cent2"])
 
-    # Prepare for K-Means via scaling and dropping none values
+    # Prepare for clustering via scaling and dropping none values
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    full_df.dropna(inplace=True)
+    #full_df.dropna(inplace=True)
+    full_df.fillna(0, inplace=True)
     scaled_features = scaler.fit_transform(full_df)
 
-    # Perform X-Means
-    clf.fit(scaled_features)
+    if args['pca_features']:
+        x_new = pca_7d.fit_transform(full_df)
+        components_list = abs( pca_7d.components_ )
+        columns_mapping = list(full_df.columns)
+        print(f'the important features for each principal component in image {num} are: ')
+        for component in components_list:
+            component = component.tolist()
+            max_value = max(component)
+            print(columns_mapping[component.index(max_value)])
 
-    # Print out best result of K-Means
-    print(f"for image {num}:")
-    params = clf.best_params_
-    best_clf = clf.best_estimator_
 
-    num_clusters = params["n_clusters"]
-    print(f"Best number of clusters is {num_clusters}")
 
-    y_kmeans = best_clf.predict(full_df)
-    full_df["Cluster"] = y_kmeans
+    if args['heirarchical']:
 
-    # Perform PCA to get the data in a reduced form
-    PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
-    PCs_2d.columns = ["PC1_2d", "PC2_2d"]
-    full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
+        plt.figure(figsize=(10, 7))  
+        plt.title(f"Dendrogram for Image {num}")  
+        dend = shc.dendrogram(shc.linkage(full_df, method='ward'))
+        plt.xlabel("Samples")
+        plt.ylabel("Distance between samples")
+        plt.show()
 
-    # Make data points for each cluster
-    clusters_li = []
-    for cluster in range(num_clusters):
-        color = "%06x" % random.randint(0, 0xFFFFFF)
-        cluster_df = full_df[full_df["Cluster"] == cluster]
-        trace = go.Scatter(
-            x=cluster_df["PC1_2d"],
-            y=cluster_df["PC2_2d"],
-            mode="markers",
-            name=f"Cluster {cluster}",
-            marker=dict(color=f"#{color}"),
-            text=None,
+    if args['xmeans']:
+        # Perform X-Means
+        clf.fit(scaled_features)
+
+        # Print out best result of K-Means
+        print(f"for image {num}:")
+        params = clf.best_params_
+        best_clf = clf.best_estimator_
+
+        num_clusters = params["n_clusters"]
+        print(f"Best number of clusters is {num_clusters}")
+
+        y_kmeans = best_clf.predict(full_df)
+        full_df["Cluster"] = y_kmeans
+
+        # Perform PCA to get the data in a reduced form
+        PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
+        PCs_2d.columns = ["PC1_2d", "PC2_2d"]
+        full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
+
+        # Make data points for each cluster
+        clusters_li = []
+        for cluster in range(num_clusters):
+            color = "%06x" % random.randint(0, 0xFFFFFF)
+            cluster_df = full_df[full_df["Cluster"] == cluster]
+            trace = go.Scatter(
+                x=cluster_df["PC1_2d"],
+                y=cluster_df["PC2_2d"],
+                mode="markers",
+                name=f"Cluster {cluster}",
+                marker=dict(color=f"#{color}"),
+                text=None,
+            )
+            clusters_li.append(trace)
+
+        # Finally, set up graph
+
+        title = f"Visualizing Clusters in Two Dimensions Using PCA for Image {num}"
+
+        layout = dict(
+            title=title,
+            xaxis=dict(title="PC1", ticklen=5, zeroline=False),
+            yaxis=dict(title="PC2", ticklen=5, zeroline=False),
         )
-        clusters_li.append(trace)
 
-    # Finally, set up graph
+        fig = dict(data=clusters_li, layout=layout)
 
-    title = f"Visualizing Clusters in Two Dimensions Using PCA for Image {num}"
-
-    layout = dict(
-        title=title,
-        xaxis=dict(title="PC1", ticklen=5, zeroline=False),
-        yaxis=dict(title="PC2", ticklen=5, zeroline=False),
-    )
-
-    fig = dict(data=clusters_li, layout=layout)
-
-    plot(fig)
+        plot(fig)
