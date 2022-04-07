@@ -60,7 +60,7 @@ if result is None or result.returncode:
 result = run(["poetry", "show", "--no-dev"], capture_output=True, text=True)
 installed_pkg = result.stdout
 
-if "!" in installed_pkg or 'SolverProblemError' in installed_pkg:
+if "!" in installed_pkg or "SolverProblemError" in installed_pkg:
     print("installing necessary packages")
     run(["poetry", "install", "--no-dev"])
 
