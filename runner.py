@@ -96,15 +96,15 @@ run(
 clustering = input("would you like to run clustering? y/n ")
 if clustering == "y":
     command_to_run = [
-            "poetry",
-            "run",
-            "python",
-            "clustering.py",
-            "-m",
-            csvs_in,
-            "-c",
-            os.path.join(c2c_output_path, "c2coutput.csv"),
-        ]
+        "poetry",
+        "run",
+        "python",
+        "clustering.py",
+        "-m",
+        csvs_in,
+        "-c",
+        os.path.join(c2c_output_path, "c2coutput.csv"),
+    ]
     heirarchical = (
         input(
             "enter YES if you would like to produce dendrograms. if not, press ENTER "
@@ -136,7 +136,7 @@ if clustering == "y":
         command_to_run.extend(["-p", "y"])
 
     run(command_to_run)
-    
+
 
 # CELLPROFILER VISUALIZER
 visualize_cprof = input(
