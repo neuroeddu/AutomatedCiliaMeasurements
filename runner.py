@@ -72,6 +72,31 @@ if not os.path.exists(dir_out):
 csvs_in = input("what is the path to your cellprofiler output csvs? ")
 images_in = input("what is the path to your cellprofiler output images? ")
 
+microm_conversion = input("do you want to convert your measurements into micrometers? y/n ")
+if microm_conversion == 'y':
+    factor = input("what is the pixel/micrometer conversion factor? ")
+    microm_conversion_path = os.path.join(dir_out, "microm_converted")
+
+    if not os.path.exists(microm_conversion_path):
+        os.mkdir(microm_conversion_path)
+    run(
+    [
+        "poetry",
+        "run",
+        "python",
+        "pixels_to_measurement.py",
+        "-m",
+        csvs_in,
+        "-f",
+        factor,
+        "-o",
+        microm_conversion_path,
+    ],
+    capture_output=True,
+    )
+
+    csvs_in = microm_conversion_path
+
 print("running center2center script")
 c2c_output_path = os.path.join(dir_out, "c2c_output")
 
@@ -134,6 +159,16 @@ if clustering == "y":
 
     if pca:
         command_to_run.extend(["-p", "y"])
+
+    umap = (
+        input(
+            "enter YES if you would like to run UMAP and plot results. if not, press ENTER "
+        )
+        or None
+    )
+
+    if umap:
+        command_to_run.extend(["-u", "y"])
 
     run(command_to_run)
 
