@@ -72,27 +72,29 @@ if not os.path.exists(dir_out):
 csvs_in = input("what is the path to your cellprofiler output csvs? ")
 images_in = input("what is the path to your cellprofiler output images? ")
 
-microm_conversion = input("do you want to convert your measurements into micrometers? y/n ")
-if microm_conversion == 'y':
+microm_conversion = input(
+    "do you want to convert your measurements into micrometers? y/n "
+)
+if microm_conversion == "y":
     factor = input("what is the pixel/micrometer conversion factor? ")
     microm_conversion_path = os.path.join(dir_out, "microm_converted")
 
     if not os.path.exists(microm_conversion_path):
         os.mkdir(microm_conversion_path)
     run(
-    [
-        "poetry",
-        "run",
-        "python",
-        "pixels_to_measurement.py",
-        "-m",
-        csvs_in,
-        "-f",
-        factor,
-        "-o",
-        microm_conversion_path,
-    ],
-    capture_output=True,
+        [
+            "poetry",
+            "run",
+            "python",
+            "pixels_to_measurement.py",
+            "-m",
+            csvs_in,
+            "-f",
+            factor,
+            "-o",
+            microm_conversion_path,
+        ],
+        capture_output=True,
     )
 
     csvs_in = microm_conversion_path

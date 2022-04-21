@@ -243,10 +243,10 @@ for num in range(1, num_im + 1):
     if args.get("umap"):
         mapper = umap.UMAP().fit(scaled_features)
         embedding = mapper.transform(scaled_features.data)
-        plt.scatter(embedding[:, 0], embedding[:, 1], cmap='Spectral', s=5)
-        plt.gca().set_aspect('equal', 'datalim')
-        plt.colorbar(boundaries=np.arange(11)-0.5).set_ticks(np.arange(10))
-        plt.title(f'UMAP projection for Image {num}', fontsize=24)
+        plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
+        plt.gca().set_aspect("equal", "datalim")
+        plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
+        plt.title(f"UMAP projection for Image {num}", fontsize=24)
         plt.show()
 
     if args.get("pca_features"):
@@ -288,7 +288,9 @@ for num in range(1, num_im + 1):
         for cluster in range(num_clusters):
             cluster_df = full_df[full_df["Cluster"] == cluster]
             mean_df = cluster_df.mean()
-            print(f'The mean values for features in image {num} in cluster {cluster} are')
+            print(
+                f"The mean values for features in image {num} in cluster {cluster} are"
+            )
             print(mean_df)
 
         # Perform PCA to get the data in a reduced form
