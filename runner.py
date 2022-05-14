@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import os
+import argparse
 
 SCRIPT_PATH = sys.path[0]
 CHANNEL_DICT = {
@@ -9,6 +10,12 @@ CHANNEL_DICT = {
     "03": "CentrioleOverlay",
 }
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-m", "--measurements", help="path to cellprofiler measurements", required=True
+)
+
+args = vars(parser.parse_args())
 
 def run(command, **kwargs):
     if os.name == "nt":
@@ -27,8 +34,6 @@ except:
     pass
 
 run(["cd", SCRIPT_PATH])
-
-# TODO test this!
 
 if result is None or result.returncode:
 

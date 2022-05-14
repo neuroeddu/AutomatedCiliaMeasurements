@@ -12,10 +12,16 @@ def label_im(coordinate_list, im, num, channel, output_path):
 
     # Writes number onto image at center
     for val in coordinate_list:
-        x_coord = val[2]
-        y_coord = val[3]
+        # Coordinate list values are slightly different
+        offset = -1 if channel == '01' else 0
+        x_coord = val[2 + offset]
+        try:
+            y_coord = val[3 + offset]
+        except:
+            print(val)
+            raise
         d = ImageDraw.Draw(img)
-        write_num = str(val[1])
+        write_num = str(val[1 + offset])
         d.text((x_coord, y_coord), write_num, fill=(255, 0, 0, 255))
 
     path = make_paths(num, True, channel, output_path)
@@ -66,9 +72,9 @@ def parse_args():
     return vars(parser.parse_args())
 
 
-def main():
+def main(**args):
 
-    args = parse_args()
+    args = args or parse_args()
     measurements_path = (
         join(args["measurements"], "MyExpt_") + CHANNEL_DICT[args["channel"]] + ".csv"
     )

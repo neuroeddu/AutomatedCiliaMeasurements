@@ -78,9 +78,9 @@ def parse_args():
     return vars(parser.parse_args())
 
 
-def batch_script():
+def main(**args):
 
-    args = parse_args()
+    args = args or parse_args()
 
     CSV_FOLDER = args["input"]
     IM_CSV_DIR_PATH = args["images"]
@@ -129,10 +129,6 @@ def batch_script():
         if args.get("centriole"):
             im_path_centriole = make_paths(num, "03", False, IM_CSV_DIR_PATH)
             label_im(centriole_list, im_path_centriole, num, "03", OUTPUT_IM_DIR_PATH)
-
-
-def main():
-    batch_script()
 
 
 if __name__ == "__main__":

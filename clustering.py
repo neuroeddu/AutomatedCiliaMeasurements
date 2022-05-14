@@ -3,7 +3,6 @@ import numpy as np
 import random
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 import argparse
 from os.path import join
@@ -13,140 +12,137 @@ import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as shc
 import umap.umap_ as umap
 
-# parse input arguments
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-m", "--measurements", help="path to CellProfiler CSVs", required=True
-)
 
-parser.add_argument("-c", "--c2c", help="path to c2c CSV", required=True)
-parser.add_argument(
-    "-x", "--xmeans", help="whether xmeans should be included", required=False
-)
-parser.add_argument(
-    "-p",
-    "--pca_features",
-    help="whether pca features should be included",
-    required=False,
-)
-parser.add_argument(
-    "-hr",
-    "--heirarchical",
-    help="whether dendrograms should be included",
-    required=False,
-)
+def parse_args():
+    # parse input arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-m", "--measurements", help="path to CellProfiler CSVs", required=True
+    )
 
-parser.add_argument(
-    "-u",
-    "--umap",
-    help="whether umap should be included",
-    required=False,
-)
-args = vars(parser.parse_args())
+    parser.add_argument("-c", "--c2c", help="path to c2c CSV", required=True)
+    parser.add_argument(
+        "-x", "--xmeans", help="whether xmeans should be included", required=False
+    )
+    parser.add_argument(
+        "-p",
+        "--pca_features",
+        help="whether pca features should be included",
+        required=False,
+    )
+    parser.add_argument(
+        "-hr",
+        "--heirarchical",
+        help="whether dendrograms should be included",
+        required=False,
+    )
 
-# params we want to check
-tuned_parameters = [{"n_clusters": [2, 3, 4, 5, 6, 7, 8]}]
+    parser.add_argument(
+        "-u",
+        "--umap",
+        help="whether umap should be included",
+        required=False,
+    )
+    return vars(parser.parse_args())
 
-fields = [
-    "ImageNumber",
-    "ObjectNumber",
-    "AreaShape_Area",
-    "AreaShape_Compactness",
-    "AreaShape_Eccentricity",
-    "AreaShape_EquivalentDiameter",
-    "AreaShape_EulerNumber",
-    "AreaShape_Extent",
-    "AreaShape_FormFactor",
-    "AreaShape_MajorAxisLength",
-    "AreaShape_MaxFeretDiameter",
-    "AreaShape_MaximumRadius",
-    "AreaShape_MeanRadius",
-    "AreaShape_MedianRadius",
-    "AreaShape_MinFeretDiameter",
-    "AreaShape_MinorAxisLength",
-    "AreaShape_Orientation",
-    "AreaShape_Perimeter",
-    "AreaShape_Solidity",
-]
+def main(**args):
+    args = args or parse_args()
+    # params we want to check
+    tuned_parameters = [{"n_clusters": [2, 3, 4, 5, 6, 7, 8]}]
 
-# Convert the CSVs into dataframes and group by image
-measurements_cilia = pd.read_csv(
-    join(args["measurements"], "MyExpt_Cilia.csv"),
-    skipinitialspace=True,
-    usecols=fields,
-)
-num_im = measurements_cilia.ImageNumber.iat[-1]
-grouped_measurements_cilia = measurements_cilia.groupby(["ImageNumber"])
+    fields = [
+        "ImageNumber",
+        "ObjectNumber",
+        "AreaShape_Area",
+        "AreaShape_Compactness",
+        "AreaShape_Eccentricity",
+        "AreaShape_EquivalentDiameter",
+        "AreaShape_EulerNumber",
+        "AreaShape_Extent",
+        "AreaShape_FormFactor",
+        "AreaShape_MajorAxisLength",
+        "AreaShape_MaxFeretDiameter",
+        "AreaShape_MaximumRadius",
+        "AreaShape_MeanRadius",
+        "AreaShape_MedianRadius",
+        "AreaShape_MinFeretDiameter",
+        "AreaShape_MinorAxisLength",
+        "AreaShape_Orientation",
+        "AreaShape_Perimeter",
+        "AreaShape_Solidity",
+    ]
 
-measurements_nuc = pd.read_csv(
-    join(args["measurements"], "MyExpt_Nucleus.csv"),
-    skipinitialspace=True,
-    usecols=fields,
-)
-grouped_measurements_nuc = measurements_nuc.groupby(["ImageNumber"])
+    # Convert the CSVs into dataframes and group by image
+    measurements_cilia = pd.read_csv(
+        join(args["measurements"], "MyExpt_Cilia.csv"),
+        skipinitialspace=True,
+        usecols=fields,
+    )
+    num_im = measurements_cilia.ImageNumber.iat[-1]
+    grouped_measurements_cilia = measurements_cilia.groupby(["ImageNumber"])
 
-measurements_cent = pd.read_csv(
-    join(args["measurements"], "MyExpt_Centriole.csv"),
-    skipinitialspace=True,
-    usecols=fields,
-)
-grouped_measurements_cent = measurements_cent.groupby(["ImageNumber"])
+    measurements_nuc = pd.read_csv(
+        join(args["measurements"], "MyExpt_Nucleus.csv"),
+        skipinitialspace=True,
+        usecols=fields,
+    )
+    grouped_measurements_nuc = measurements_nuc.groupby(["ImageNumber"])
 
-c2c_pairings = pd.read_csv(args["c2c"], skipinitialspace=True)
-c2c_pairings["Centriole"] = (
-    c2c_pairings["Centriole"].fillna("[]").apply(lambda x: eval(x))
-)
-c2c_pairings["PathLengthCentriole"] = (
-    c2c_pairings["PathLengthCentriole"].fillna("[]").apply(lambda x: eval(x))
-)
+    measurements_cent = pd.read_csv(
+        join(args["measurements"], "MyExpt_Centriole.csv"),
+        skipinitialspace=True,
+        usecols=fields,
+    )
+    grouped_measurements_cent = measurements_cent.groupby(["ImageNumber"])
 
-# Edit c2c data to separate centrioles into two columns
-split_df = pd.DataFrame(c2c_pairings["Centriole"].to_list(), columns=["Cent1", "Cent2"])
-split_df_2 = pd.DataFrame(
-    c2c_pairings["PathLengthCentriole"].to_list(), columns=["PathCent1", "PathCent2"]
-)
-c2c_pairings = pd.concat([c2c_pairings, split_df], axis=1)
-c2c_pairings = pd.concat([c2c_pairings, split_df_2], axis=1)
-c2c_pairings = c2c_pairings.drop(["Centriole", "PathLengthCentriole"], axis=1)
+    c2c_pairings = pd.read_csv(args["c2c"], skipinitialspace=True)
 
-grouped_c2c = c2c_pairings.groupby(["ImageNumber"])
+    scores, clf, pca_2d, pca_7d, grouped_c2c = setup_for_clustering(c2c_pairings, tuned_parameters)
 
-# Set up the K-Means/scaling/PCA for visualization
-scores = ["precision", "recall"]
-clf = GridSearchCV(KMeans(), tuned_parameters)
-pca_2d = PCA(n_components=2)
-pca_7d = PCA(n_components=7)
+    for num in range(1, num_im + 1):
+        # Get correct groups
+        measurements_nuc = grouped_measurements_nuc.get_group(num)
+        measurements_cilia = grouped_measurements_cilia.get_group(num)
+        measurements_cent = grouped_measurements_cent.get_group(num)
+        c2c_df = grouped_c2c.get_group(num)
 
-for num in range(1, num_im + 1):
-    # Get correct groups
-    measurements_cilia = grouped_measurements_cilia.get_group(num)
-    measurements_nuc = grouped_measurements_nuc.get_group(num)
-    measurements_cent = grouped_measurements_cent.get_group(num)
-    c2c_df = grouped_c2c.get_group(num)
+        full_df = normalize_and_clean(measurements_nuc, measurements_cilia, measurements_cent, c2c_df)
+
+        if args.get('umap'): umap_(full_df, num)
+        if args.get('pca_features'): pca_features(full_df, pca_7d, num)
+        if args.get('heirarchical'): heirarchical_clustering(full_df, num)
+        if args.get('xmeans'): xmeans(full_df, clf, num, pca_2d)
+
+def setup_for_clustering(c2c_pairings, tuned_parameters):
+    c2c_pairings["Centriole"] = (
+        c2c_pairings["Centriole"].fillna("[]").apply(lambda x: eval(x))
+    )
+    c2c_pairings["PathLengthCentriole"] = (
+        c2c_pairings["PathLengthCentriole"].fillna("[]").apply(lambda x: eval(x))
+    )
+
+    # Edit c2c data to separate centrioles into two columns
+    split_df = pd.DataFrame(c2c_pairings["Centriole"].to_list(), columns=["Cent1", "Cent2"])
+    split_df_2 = pd.DataFrame(
+        c2c_pairings["PathLengthCentriole"].to_list(), columns=["PathCent1", "PathCent2"]
+    )
+    c2c_pairings = pd.concat([c2c_pairings, split_df], axis=1)
+    c2c_pairings = pd.concat([c2c_pairings, split_df_2], axis=1)
+    c2c_pairings = c2c_pairings.drop(["Centriole", "PathLengthCentriole"], axis=1)
+
+    grouped_c2c = c2c_pairings.groupby(["ImageNumber"])
+
+    # Set up the K-Means/scaling/PCA for visualization
+    scores = ["precision", "recall"]
+    clf = GridSearchCV(KMeans(), tuned_parameters)
+    pca_2d = PCA(n_components=2)
+    pca_7d = PCA(n_components=7)
+
+    return scores, clf, pca_2d, pca_7d, grouped_c2c
+
+def normalize_and_clean(measurements_nuc, measurements_cilia, measurements_cent, c2c_df):
 
     # Prepare to merge
-    measurements_cilia = measurements_cilia.rename(
-        columns={
-            "ObjectNumber": "Cilia",
-            "AreaShape_Area": "CiliaArea",
-            "AreaShape_Compactness": "CiliaCompactness",
-            "AreaShape_Eccentricity": "CiliaEccentricity",
-            "AreaShape_EquivalentDiameter": "CiliaEquivDiameter",
-            "AreaShape_EulerNumber": "CiliaEulerNum",
-            "AreaShape_Extent": "CiliaExtent",
-            "AreaShape_FormFactor": "CiliaFormFactor",
-            "AreaShape_MajorAxisLength": "CiliaMajorAxisLength",
-            "AreaShape_MaxFeretDiameter": "CiliaMaxFeretDiameter",
-            "AreaShape_MaximumRadius": "CiliaMaxRadius",
-            "AreaShape_MeanRadius": "CiliaMeanRadius",
-            "AreaShape_MedianRadius": "CiliaMedianRadius",
-            "AreaShape_MinFeretDiameter": "CiliaMinFeretDiameter",
-            "AreaShape_MinorAxisLength": "CiliaMinorAxisLength",
-            "AreaShape_Orientation": "CiliaOrientation",
-            "AreaShape_Perimeter": "CiliaPerimeter",
-            "AreaShape_Solidity": "CiliaSolidity",
-        }
-    )
     measurements_nuc = measurements_nuc.rename(
         columns={
             "ObjectNumber": "Nucleus",
@@ -169,6 +165,30 @@ for num in range(1, num_im + 1):
             "AreaShape_Solidity": "NucSolidity",
         }
     )
+
+    measurements_cilia = measurements_cilia.rename(
+        columns={
+            "ObjectNumber": "Cilia",
+            "AreaShape_Area": "CiliaArea",
+            "AreaShape_Compactness": "CiliaCompactness",
+            "AreaShape_Eccentricity": "CiliaEccentricity",
+            "AreaShape_EquivalentDiameter": "CiliaEquivDiameter",
+            "AreaShape_EulerNumber": "CiliaEulerNum",
+            "AreaShape_Extent": "CiliaExtent",
+            "AreaShape_FormFactor": "CiliaFormFactor",
+            "AreaShape_MajorAxisLength": "CiliaMajorAxisLength",
+            "AreaShape_MaxFeretDiameter": "CiliaMaxFeretDiameter",
+            "AreaShape_MaximumRadius": "CiliaMaxRadius",
+            "AreaShape_MeanRadius": "CiliaMeanRadius",
+            "AreaShape_MedianRadius": "CiliaMedianRadius",
+            "AreaShape_MinFeretDiameter": "CiliaMinFeretDiameter",
+            "AreaShape_MinorAxisLength": "CiliaMinorAxisLength",
+            "AreaShape_Orientation": "CiliaOrientation",
+            "AreaShape_Perimeter": "CiliaPerimeter",
+            "AreaShape_Solidity": "CiliaSolidity",
+        }
+    )
+
     measurements_cent_1 = measurements_cent.rename(
         columns={
             "ObjectNumber": "Cent1",
@@ -213,8 +233,9 @@ for num in range(1, num_im + 1):
             "AreaShape_Solidity": "CentSolidity2",
         }
     )
-    measurements_cilia.drop("ImageNumber", axis=1, inplace=True)
+
     measurements_nuc.drop("ImageNumber", axis=1, inplace=True)
+    measurements_cilia.drop("ImageNumber", axis=1, inplace=True)
     measurements_cent.drop("ImageNumber", axis=1, inplace=True)
     c2c_df.drop("ImageNumber", axis=1, inplace=True)
 
@@ -234,30 +255,32 @@ for num in range(1, num_im + 1):
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
     # full_df.dropna(inplace=True)
     full_df.fillna(0, inplace=True)
+    
+    return full_df
+        
 
-    if args.get("umap"):
-        reducer = umap.UMAP()
-        embedding = reducer.fit_transform(full_df)
-        plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
-        plt.gca().set_aspect("equal", "datalim")
-        plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
-        plt.title(f"UMAP projection for Image {num}", fontsize=24)
-        plt.show()
+def umap_(full_df, num):
+    reducer = umap.UMAP()
+    embedding = reducer.fit_transform(full_df)
+    plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
+    plt.gca().set_aspect("equal", "datalim")
+    plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
+    plt.title(f"UMAP projection for Image {num}", fontsize=24)
+    plt.show()
 
-    if args.get("pca_features"):
-        x_new = pca_7d.fit_transform(full_df)
-        components_list = abs(pca_7d.components_)
-        columns_mapping = list(full_df.columns)
-        print(
-            f"the important features for each principal component in image {num} are: "
-        )
-        for component in components_list:
-            component = component.tolist()
-            max_value = max(component)
-            print(columns_mapping[component.index(max_value)])
+def pca_features(full_df, pca_7d, num):
+    x_new = pca_7d.fit_transform(full_df)
+    components_list = abs(pca_7d.components_)
+    columns_mapping = list(full_df.columns)
+    print(
+        f"the important features for each principal component in image {num} are: "
+    )
+    for component in components_list:
+        component = component.tolist()
+        max_value = max(component)
+        print(columns_mapping[component.index(max_value)])
 
-    if args.get("heirarchical"):
-
+def heirarchical_clustering(full_df, num):
         plt.figure(figsize=(10, 7))
         plt.title(f"Dendrogram for Image {num}")
         dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
@@ -265,59 +288,62 @@ for num in range(1, num_im + 1):
         plt.ylabel("Distance between samples")
         plt.show()
 
-    if args.get("xmeans"):
-        # Perform X-Means
-        clf.fit(full_df)
+def xmeans(full_df, clf, num, pca_2d):
+    # Perform X-Means
+    clf.fit(full_df)
 
-        # Print out best result of K-Means
-        print(f"for image {num}:")  # 3,4,5
-        params = clf.best_params_  # n_clusters=3
-        best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
+    # Print out best result of K-Means
+    print(f"for image {num}:")  # 3,4,5
+    params = clf.best_params_  # n_clusters=3
+    best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
 
-        num_clusters = params["n_clusters"]
-        print(f"Best number of clusters is {num_clusters}")
+    num_clusters = params["n_clusters"]
+    print(f"Best number of clusters is {num_clusters}")
 
-        y_kmeans = best_clf.predict(full_df)
-        full_df["Cluster"] = y_kmeans
+    y_kmeans = best_clf.predict(full_df)
+    full_df["Cluster"] = y_kmeans
 
-        for cluster in range(num_clusters):
-            cluster_df = full_df[full_df["Cluster"] == cluster]
-            mean_df = cluster_df.mean()
-            print(
-                f"The mean values for features in image {num} in cluster {cluster} are"
-            )
-            print(mean_df)
-
-        # Perform PCA to get the data in a reduced form
-        PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
-        PCs_2d.columns = ["PC1_2d", "PC2_2d"]
-        full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
-
-        # Make data points for each cluster
-        clusters_li = []
-        for cluster in range(num_clusters):
-            color = "%06x" % random.randint(0, 0xFFFFFF)
-            cluster_df = full_df[full_df["Cluster"] == cluster]
-            trace = go.Scatter(
-                x=cluster_df["PC1_2d"],
-                y=cluster_df["PC2_2d"],
-                mode="markers",
-                name=f"Cluster {cluster}",
-                marker=dict(color=f"#{color}"),
-                text=None,
-            )
-            clusters_li.append(trace)
-
-        # Finally, set up graph
-
-        title = f"Visualizing Clusters in Two Dimensions Using PCA for Image {num}"
-
-        layout = dict(
-            title=title,
-            xaxis=dict(title="PC1", ticklen=5, zeroline=False),
-            yaxis=dict(title="PC2", ticklen=5, zeroline=False),
+    for cluster in range(num_clusters):
+        cluster_df = full_df[full_df["Cluster"] == cluster]
+        mean_df = cluster_df.mean()
+        print(
+            f"The mean values for features in image {num} in cluster {cluster} are"
         )
+        print(mean_df)
 
-        fig = dict(data=clusters_li, layout=layout)
+    # Perform PCA to get the data in a reduced form
+    PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
+    PCs_2d.columns = ["PC1_2d", "PC2_2d"]
+    full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
 
-        plot(fig)
+    # Make data points for each cluster
+    clusters_li = []
+    for cluster in range(num_clusters):
+        color = "%06x" % random.randint(0, 0xFFFFFF)
+        cluster_df = full_df[full_df["Cluster"] == cluster]
+        trace = go.Scatter(
+            x=cluster_df["PC1_2d"],
+            y=cluster_df["PC2_2d"],
+            mode="markers",
+            name=f"Cluster {cluster}",
+            marker=dict(color=f"#{color}"),
+            text=None,
+        )
+        clusters_li.append(trace)
+
+    # Finally, set up graph
+
+    title = f"Visualizing Clusters in Two Dimensions Using PCA for Image {num}"
+
+    layout = dict(
+        title=title,
+        xaxis=dict(title="PC1", ticklen=5, zeroline=False),
+        yaxis=dict(title="PC2", ticklen=5, zeroline=False),
+    )
+
+    fig = dict(data=clusters_li, layout=layout)
+
+    plot(fig)
+
+if __name__=='__main__':
+    main()

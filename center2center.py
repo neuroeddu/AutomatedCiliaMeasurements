@@ -200,9 +200,9 @@ def parse_args():
     return vars(parser.parse_args())
 
 
-def main():
+def main(**args):
 
-    arguments = parse_args()
+    arguments = args or parse_args()
 
     CSV_FOLDER = arguments["input"]
     OUTPUT_CSV_DIR_PATH = arguments["output"]

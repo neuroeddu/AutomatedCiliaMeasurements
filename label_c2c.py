@@ -43,9 +43,9 @@ def parse_args():
     return vars(parser.parse_args())
 
 
-def main():
+def main(**args):
 
-    args = parse_args()
+    args = args or parse_args()
     CSV_FOLDER = args["input"]
     IM_CSV_DIR_PATH = args["images"]
     # Load data
