@@ -45,7 +45,7 @@ parser.add_argument(
 args = vars(parser.parse_args())
 
 # params we want to check
-tuned_parameters = [{"n_clusters": [2,3,4,5,6,7,8]}]
+tuned_parameters = [{"n_clusters": [2, 3, 4, 5, 6, 7, 8]}]
 
 fields = [
     "ImageNumber",
@@ -270,9 +270,9 @@ for num in range(1, num_im + 1):
         clf.fit(full_df)
 
         # Print out best result of K-Means
-        print(f"for image {num}:") # 3,4,5
-        params = clf.best_params_ # n_clusters=3
-        best_clf = clf.best_estimator_ # KMeans(n_clusters=3)
+        print(f"for image {num}:")  # 3,4,5
+        params = clf.best_params_  # n_clusters=3
+        best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
 
         num_clusters = params["n_clusters"]
         print(f"Best number of clusters is {num_clusters}")
