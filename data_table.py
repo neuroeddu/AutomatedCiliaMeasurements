@@ -2,6 +2,7 @@ import pandas as pd
 import argparse
 from os.path import join
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -10,6 +11,7 @@ def parse_args():
     parser.add_argument("-c", "--c2c", help="path to c2c output CSVs", required=True)
     parser.add_argument("-o", "--output", help="path to output", required=True)
     return vars(parser.parse_args())
+
 
 def main(**args):
     args = args or parse_args()
@@ -22,20 +24,36 @@ def main(**args):
     num_im = cell_df.ImageNumber.iat[-1]
     num_cells = cell_df.shape[0]
     grouped_cell = cell_df.groupby(["ImageNumber"])
-    centriole_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Centriole.csv", skipinitialspace=True)
+    centriole_df = pd.read_csv(
+        CSV_FOLDER + "/MyExpt_Centriole.csv", skipinitialspace=True
+    )
     grouped_centriole = centriole_df.groupby(["ImageNumber"])
     cilia_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Cilia.csv", skipinitialspace=True)
     grouped_cilia = cilia_df.groupby(["ImageNumber"])
-    associate_df = pd.read_csv(C2C_OUTPUT_PATH + "/c2coutput.csv", skipinitialspace=True)
+    associate_df = pd.read_csv(
+        C2C_OUTPUT_PATH + "/c2coutput.csv", skipinitialspace=True
+    )
     grouped_associates = associate_df.groupby(["ImageNumber"])
-    valid_cilia_df = pd.read_csv(C2C_OUTPUT_PATH + "/new_cilia.csv", skipinitialspace=True)
+    valid_cilia_df = pd.read_csv(
+        C2C_OUTPUT_PATH + "/new_cilia.csv", skipinitialspace=True
+    )
     grouped_valid_cilia = valid_cilia_df.groupby(["0"])
     image_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Image.csv", skipinitialspace=True)
 
-    df_result = make_result_dict(cell_df, cilia_df, grouped_cell, valid_cilia_df, grouped_valid_cilia, associate_df)
+    df_result = make_result_dict(
+        cell_df,
+        cilia_df,
+        grouped_cell,
+        valid_cilia_df,
+        grouped_valid_cilia,
+        associate_df,
+    )
     df_result.to_csv(join(OUTPUT_PATH, "data_table.csv"))
 
-def make_result_dict(cell_df, cilia_df, grouped_cell, valid_cilia_df, grouped_valid_cilia, associate_df):
+
+def make_result_dict(
+    cell_df, cilia_df, grouped_cell, valid_cilia_df, grouped_valid_cilia, associate_df
+):
     # Set up output dictionary
     result_dict = {
         "cilia num": -1,
@@ -81,5 +99,3 @@ def make_result_dict(cell_df, cilia_df, grouped_cell, valid_cilia_df, grouped_va
 
     print(result_dict)
     return pd.DataFrame.from_dict([result_dict])
-
-

@@ -13,7 +13,7 @@ def label_im(coordinate_list, im, num, channel, output_path):
     # Writes number onto image at center
     for val in coordinate_list:
         # Coordinate list values are slightly different
-        offset = -1 if channel == '01' else 0
+        offset = -1 if channel == "01" else 0
         x_coord = val[2 + offset]
         try:
             y_coord = val[3 + offset]

@@ -45,6 +45,7 @@ def parse_args():
     )
     return vars(parser.parse_args())
 
+
 def main(**args):
     args = args or parse_args()
     # params we want to check
@@ -97,7 +98,9 @@ def main(**args):
 
     c2c_pairings = pd.read_csv(args["c2c"], skipinitialspace=True)
 
-    scores, clf, pca_2d, pca_7d, grouped_c2c = setup_for_clustering(c2c_pairings, tuned_parameters)
+    scores, clf, pca_2d, pca_7d, grouped_c2c = setup_for_clustering(
+        c2c_pairings, tuned_parameters
+    )
 
     for num in range(1, num_im + 1):
         # Get correct groups
@@ -106,12 +109,19 @@ def main(**args):
         measurements_cent = grouped_measurements_cent.get_group(num)
         c2c_df = grouped_c2c.get_group(num)
 
-        full_df = normalize_and_clean(measurements_nuc, measurements_cilia, measurements_cent, c2c_df)
+        full_df = normalize_and_clean(
+            measurements_nuc, measurements_cilia, measurements_cent, c2c_df
+        )
 
-        if args.get('umap'): umap_(full_df, num)
-        if args.get('pca_features'): pca_features(full_df, pca_7d, num)
-        if args.get('heirarchical'): heirarchical_clustering(full_df, num)
-        if args.get('xmeans'): xmeans(full_df, clf, num, pca_2d)
+        if args.get("umap"):
+            umap_(full_df, num)
+        if args.get("pca_features"):
+            pca_features(full_df, pca_7d, num)
+        if args.get("heirarchical"):
+            heirarchical_clustering(full_df, num)
+        if args.get("xmeans"):
+            xmeans(full_df, clf, num, pca_2d)
+
 
 def setup_for_clustering(c2c_pairings, tuned_parameters):
     c2c_pairings["Centriole"] = (
@@ -122,9 +132,12 @@ def setup_for_clustering(c2c_pairings, tuned_parameters):
     )
 
     # Edit c2c data to separate centrioles into two columns
-    split_df = pd.DataFrame(c2c_pairings["Centriole"].to_list(), columns=["Cent1", "Cent2"])
+    split_df = pd.DataFrame(
+        c2c_pairings["Centriole"].to_list(), columns=["Cent1", "Cent2"]
+    )
     split_df_2 = pd.DataFrame(
-        c2c_pairings["PathLengthCentriole"].to_list(), columns=["PathCent1", "PathCent2"]
+        c2c_pairings["PathLengthCentriole"].to_list(),
+        columns=["PathCent1", "PathCent2"],
     )
     c2c_pairings = pd.concat([c2c_pairings, split_df], axis=1)
     c2c_pairings = pd.concat([c2c_pairings, split_df_2], axis=1)
@@ -140,7 +153,10 @@ def setup_for_clustering(c2c_pairings, tuned_parameters):
 
     return scores, clf, pca_2d, pca_7d, grouped_c2c
 
-def normalize_and_clean(measurements_nuc, measurements_cilia, measurements_cent, c2c_df):
+
+def normalize_and_clean(
+    measurements_nuc, measurements_cilia, measurements_cent, c2c_df
+):
 
     # Prepare to merge
     measurements_nuc = measurements_nuc.rename(
@@ -255,9 +271,9 @@ def normalize_and_clean(measurements_nuc, measurements_cilia, measurements_cent,
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
     # full_df.dropna(inplace=True)
     full_df.fillna(0, inplace=True)
-    
+
     return full_df
-        
+
 
 def umap_(full_df, num):
     reducer = umap.UMAP()
@@ -268,25 +284,26 @@ def umap_(full_df, num):
     plt.title(f"UMAP projection for Image {num}", fontsize=24)
     plt.show()
 
+
 def pca_features(full_df, pca_7d, num):
     x_new = pca_7d.fit_transform(full_df)
     components_list = abs(pca_7d.components_)
     columns_mapping = list(full_df.columns)
-    print(
-        f"the important features for each principal component in image {num} are: "
-    )
+    print(f"the important features for each principal component in image {num} are: ")
     for component in components_list:
         component = component.tolist()
         max_value = max(component)
         print(columns_mapping[component.index(max_value)])
 
+
 def heirarchical_clustering(full_df, num):
-        plt.figure(figsize=(10, 7))
-        plt.title(f"Dendrogram for Image {num}")
-        dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
-        plt.xlabel("Samples")
-        plt.ylabel("Distance between samples")
-        plt.show()
+    plt.figure(figsize=(10, 7))
+    plt.title(f"Dendrogram for Image {num}")
+    dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
+    plt.xlabel("Samples")
+    plt.ylabel("Distance between samples")
+    plt.show()
+
 
 def xmeans(full_df, clf, num, pca_2d):
     # Perform X-Means
@@ -306,9 +323,7 @@ def xmeans(full_df, clf, num, pca_2d):
     for cluster in range(num_clusters):
         cluster_df = full_df[full_df["Cluster"] == cluster]
         mean_df = cluster_df.mean()
-        print(
-            f"The mean values for features in image {num} in cluster {cluster} are"
-        )
+        print(f"The mean values for features in image {num} in cluster {cluster} are")
         print(mean_df)
 
     # Perform PCA to get the data in a reduced form
@@ -345,5 +360,6 @@ def xmeans(full_df, clf, num, pca_2d):
 
     plot(fig)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

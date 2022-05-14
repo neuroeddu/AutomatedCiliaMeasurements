@@ -3,6 +3,7 @@ import csv
 import argparse
 from os.path import join
 
+
 def parse_args():
     # get true results and results from c2c CSVs, and specify output path
     parser = argparse.ArgumentParser()
@@ -11,6 +12,7 @@ def parse_args():
     parser.add_argument("-o", "--output", help="output folder path", required=True)
 
     return vars(parser.parse_args())
+
 
 def make_accuracy_checker(true_df_im, c2c_df_im, result_li, num):
 
@@ -38,6 +40,7 @@ def make_accuracy_checker(true_df_im, c2c_df_im, result_li, num):
 
     return result_li
 
+
 def main(**args):
     args = args or parse_args
     c2c_df = pd.read_csv(args["c2c"], skipinitialspace=True)
@@ -46,7 +49,9 @@ def main(**args):
     true_df = pd.read_csv(args["true"], skipinitialspace=True)
     grouped_true = true_df.groupby(["ImageNum"])
 
-    num_im = true_df.ImageNum.iat[-1]  # Get number of images so we can iterate through them
+    num_im = true_df.ImageNum.iat[
+        -1
+    ]  # Get number of images so we can iterate through them
 
     result_li = []
 
@@ -72,5 +77,6 @@ def main(**args):
         for row in result_li:
             write.writerow(row)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()
