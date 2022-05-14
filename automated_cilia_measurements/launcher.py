@@ -1,7 +1,9 @@
 import sys
 import os
 import argparse
-from automated_cilia_measurements.pixels_to_measurement import main as pixels_to_measurement
+from automated_cilia_measurements.pixels_to_measurement import (
+    main as pixels_to_measurement,
+)
 from automated_cilia_measurements.center2center import main as c2c
 from automated_cilia_measurements.clustering import main as clustering
 from automated_cilia_measurements.label_cprof_im import main as label_cprof_im
@@ -9,6 +11,7 @@ from automated_cilia_measurements.data_table import main as data_table
 from automated_cilia_measurements.label_c2c import main as label_c2c
 from automated_cilia_measurements.label_valid_cilia import main as organelle_labeler
 from automated_cilia_measurements.check_accuracy import main as check_accuracy
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -93,11 +96,19 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-dt", "--data_table", help="make a data table", required=False, action="store_true"
+        "-dt",
+        "--data_table",
+        help="make a data table",
+        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
-        "-cc", "--label_c2c", help="label c2c images", required=False, action="store_true"
+        "-cc",
+        "--label_c2c",
+        help="label c2c images",
+        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -158,6 +169,7 @@ def parse_args():
         required=False,
     )
     return vars(parser.parse_args())
+
 
 def main():
     args = parse_args()
@@ -267,7 +279,6 @@ def main():
             c2c=c2c_output_path,
         )
 
-
     if args.get("cent_label"):
         channel_lbl = os.path.join(dir_out, "channel_CentrioleOverlay_vis_output")
         if not os.path.exists(channel_lbl):
@@ -293,5 +304,6 @@ def main():
             c2c=os.path.join(c2c_output_path, "new_cilia.csv"),
         )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
