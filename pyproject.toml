@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "automatedciliameasurements"
+name = "automated_cilia_measurements"
 version = "0.1.0"
 description = "Pipeline to measure cilia, cells, and which cilia are close to which cells from microscopy images using CellProfiler and Python"
 authors = ["sneha <sneha.shinde350+0@gmail.com>"]
@@ -18,6 +18,18 @@ umap-learn = "0.5.3"
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
 bokeh = "^2.4.2"
+
+[tool.poetry.scripts]
+automated_cilia_measurements = "automated_cilia_measurements.launcher:main"
+automated_cilia_measurements_c2c = "automated_cilia_measurements.center2center:main"
+automated_cilia_measurements_accuracy = "automated_cilia_measurements.check_accuracy:main"
+automated_cilia_measurements_clustering = "automated_cilia_measurements.clustering:main"
+automated_cilia_measurements_data_table = "automated_cilia_measurements.data_table:main"
+automated_cilia_measurements_image_checker = "automated_cilia_measurements.image_checker:main"
+automated_cilia_measurements_label_c2c = "automated_cilia_measurements.label_c2c:main"
+automated_cilia_measurements_label_cprof = "automated_cilia_measurements.label_cprof_im:main"
+automated_cilia_measurements_label_cilia = "automated_cilia_measurements.label_valid_cilia:main"
+automated_cilia_measurements_pixels_to_measurements = "automated_cilia_measurements.pixels_to_measurements:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
