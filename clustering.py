@@ -45,7 +45,7 @@ parser.add_argument(
 args = vars(parser.parse_args())
 
 # params we want to check
-tuned_parameters = [{"n_clusters": [2, 3, 4, 5, 6, 7, 8, 9]}]
+tuned_parameters = [{"n_clusters": [2,3,4,5,6,7,8]}]
 
 fields = [
     "ImageNumber",
@@ -100,7 +100,6 @@ c2c_pairings["PathLengthCentriole"] = (
     c2c_pairings["PathLengthCentriole"].fillna("[]").apply(lambda x: eval(x))
 )
 
-print(c2c_pairings.shape)
 # Edit c2c data to separate centrioles into two columns
 split_df = pd.DataFrame(c2c_pairings["Centriole"].to_list(), columns=["Cent1", "Cent2"])
 split_df_2 = pd.DataFrame(
@@ -112,11 +111,8 @@ c2c_pairings = c2c_pairings.drop(["Centriole", "PathLengthCentriole"], axis=1)
 
 grouped_c2c = c2c_pairings.groupby(["ImageNumber"])
 
-c2c_df = grouped_c2c.get_group(1)
-print(c2c_df.shape)
 # Set up the K-Means/scaling/PCA for visualization
 scores = ["precision", "recall"]
-scaler = StandardScaler()
 clf = GridSearchCV(KMeans(), tuned_parameters)
 pca_2d = PCA(n_components=2)
 pca_7d = PCA(n_components=7)
@@ -238,11 +234,10 @@ for num in range(1, num_im + 1):
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
     # full_df.dropna(inplace=True)
     full_df.fillna(0, inplace=True)
-    scaled_features = scaler.fit_transform(full_df)
 
     if args.get("umap"):
-        mapper = umap.UMAP().fit(scaled_features)
-        embedding = mapper.transform(scaled_features.data)
+        reducer = umap.UMAP()
+        embedding = reducer.fit_transform(full_df)
         plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
         plt.gca().set_aspect("equal", "datalim")
         plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
@@ -250,7 +245,7 @@ for num in range(1, num_im + 1):
         plt.show()
 
     if args.get("pca_features"):
-        x_new = pca_7d.fit_transform(scaled_features)
+        x_new = pca_7d.fit_transform(full_df)
         components_list = abs(pca_7d.components_)
         columns_mapping = list(full_df.columns)
         print(
@@ -265,19 +260,19 @@ for num in range(1, num_im + 1):
 
         plt.figure(figsize=(10, 7))
         plt.title(f"Dendrogram for Image {num}")
-        dend = shc.dendrogram(shc.linkage(scaled_features, method="ward"))
+        dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
         plt.xlabel("Samples")
         plt.ylabel("Distance between samples")
         plt.show()
 
     if args.get("xmeans"):
         # Perform X-Means
-        clf.fit(scaled_features)
+        clf.fit(full_df)
 
         # Print out best result of K-Means
-        print(f"for image {num}:")
-        params = clf.best_params_
-        best_clf = clf.best_estimator_
+        print(f"for image {num}:") # 3,4,5
+        params = clf.best_params_ # n_clusters=3
+        best_clf = clf.best_estimator_ # KMeans(n_clusters=3)
 
         num_clusters = params["n_clusters"]
         print(f"Best number of clusters is {num_clusters}")
