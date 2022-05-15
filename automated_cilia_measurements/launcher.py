@@ -1,3 +1,4 @@
+from imp import create_dynamic
 import sys
 import os
 import argparse
@@ -12,7 +13,7 @@ from automated_cilia_measurements.label_c2c import main as label_c2c
 from automated_cilia_measurements.label_valid_cilia import main as organelle_labeler
 from automated_cilia_measurements.check_accuracy import main as check_accuracy
 import kivy
-from kivy.app import App 
+from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
@@ -176,88 +177,184 @@ def parse_args():
     )
     return vars(parser.parse_args())
 
+
 class MyGrid(GridLayout):
+
+    def append_widget(self, label_text, widget_name, widget, index=None):
+        self[widget_name] = widget
+        label_name = f'Label {widget_name}'
+        self[label_name] = Label(text=label_text)
+
+        if index is None:
+            self.add_widget(self[label_name])
+            self.cur_widgets.append(label_name)
+
+            self.add_widget(self[widget_name])
+            self.cur_widgets.append(widget_name)
+        else:
+            # Invert because grid layout indexes the bottom of the screen as 0
+            self.add_widget(self[widget_name], index=-index)
+            self.cur_widgets.insert(index, widget_name)
+
+            self.add_widget(self[label_name], index=-index)
+            self.cur_widgets.insert(index, f'Label {widget_name}')
+
+    def delete_widget(self, widget_name):
+        print('In delete_widget')
+        
+        label_name = f'Label {widget_name}'
+        print(widget_name)
+        print(label_name)
+
+        print(self[widget_name])
+        print(self[label_name])
+        print(self.cur_widgets)
+        self.remove_widget(self[widget_name])
+        self.cur_widgets.remove(widget_name)
+
+        self.remove_widget(self[label_name])
+        self.cur_widgets.remove(label_name)
+
+        print(self[widget_name])
+        print(self[label_name])
+        print(self.cur_widgets)
+        
+
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except:
+            return 'Doesn\'t exist!'
+
+    def create_dynamic_checkbox_handler(self, parent_widget_name, dependencies):
+        def on_checkbox_handler(checkbox, value):
+            print('In handler')
+            parent_index = self.cur_widgets.index(parent_widget_name)
+
+            if value:
+                for (dep_label, dep_widget_name, widget) in reversed(dependencies):
+                    self.append_widget(dep_label, dep_widget_name, widget, (parent_index+1))
+            else:
+                for (_, dep_widget_name, _) in dependencies:
+                    self.delete_widget(dep_widget_name)
+
+        return on_checkbox_handler
+
     def __init__(self, **kwargs):
         super(MyGrid, self).__init__(**kwargs)
         self.cols = 2
 
-        self.add_widget(Label(text="Input CSVs (from CellProfiler):"))
-        self.input_csvs = TextInput(multiline=False)
-        self.add_widget(self.input_csvs)
+        self.cur_widgets = []
 
-        self.add_widget(Label(text="Input images (from CellProfiler):"))
-        self.input_images = TextInput(multiline=False)
-        self.add_widget(self.input_images)
+        self.append_widget("Input CSVs (from CellProfiler):", 'input_csvs', TextInput(multiline=False))
+        self.append_widget("Input images (from CellProfiler):", 'input_images', TextInput(multiline=False))
+        self.append_widget("Output folder:", 'output', TextInput(multiline=False))
 
-        self.add_widget(Label(text="Output folder"))
-        self.output = TextInput(multiline=False)
-        self.add_widget(self.output)
+        parent_name = "microm"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [('Scale factor to convert pixels to micrometers:', 'factor', TextInput(multiline=False))]
+            )
+        )
+        self.append_widget("Convert pixels to micrometers?", parent_name, cb)
 
-        self.add_widget(Label(text="Convert pixels to micrometers?"))
-        self.microm = CheckBox()
-        self.add_widget(self.microm)
-        # TODO INTERACTIVE ELEMENTS
-        self.add_widget(Label(text="Make dendrograms?"))
-        self.heirarchical = CheckBox()
-        self.add_widget(self.heirarchical)
+        self.append_widget("Make dendograms?", "heirachical", CheckBox())
+        self.append_widget("Make XMeans?", "xmeans", CheckBox())
+        self.append_widget("Perform PCA", "pca", CheckBox())
+        self.append_widget("Perform UMAP", "umap", CheckBox())
 
-        self.add_widget(Label(text="Perform XMeans?"))
-        self.xmeans = CheckBox()
-        self.add_widget(self.xmeans)
+        parent_name = "cellprofiler_labeling"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    ('Number of images to label for cellprofiler image labeling, if specific number of im wanted:', 'num_cellprofiler_images', TextInput(multiline=False)),
+                    ('Label centriole images for cellprofiler image labeling?', 'centriole_cellprofiler_images', CheckBox()),
+                ]
+            )
+        )
+        self.append_widget("Perform labeling of CellProfiler images?", parent_name, cb)
 
-        self.add_widget(Label(text="Perform PCA?"))
-        self.pca = CheckBox()
-        self.add_widget(self.pca)
+        self.append_widget("Make a data table?", "data_table", CheckBox())
 
-        self.add_widget(Label(text="Perform UMAP?"))
-        self.umap = CheckBox()
-        self.add_widget(self.umap)
+        parent_name = "label_c2c"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    ('Number of images to label for c2c image labeling, if specific number of im wanted:', 'num_c2c_images', TextInput(multiline=False)),
+                ]
+            )
+        )
+        self.append_widget("Visualize c2c output?", parent_name, cb)
 
-        self.add_widget(Label(text="Perform labeling of CellProfiler images?"))
-        self.cellprofiler_labeling = CheckBox()
-        self.add_widget(self.cellprofiler_labeling)
-        # TODO INTERACTIVE ELEMENTS
-        self.add_widget(Label(text="Make a data table?"))
-        self.data_table = CheckBox()
-        self.add_widget(self.data_table)
+        parent_name = "nuclei_label"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    ('Number of images to label for nuclei image labeling, if specific number of im wanted:', 'num_nuclei_images', TextInput(multiline=False)),
+                ]
+            )
+        )
+        self.append_widget("Visualize nuclei on images?", parent_name, cb)
 
-        self.add_widget(Label(text="Visualize c2c output?"))
-        self.label_c2c = CheckBox()
-        self.add_widget(self.label_c2c)
+        parent_name = "cilia_label"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    ('Number of images to label for cilia image labeling, if specific number of im wanted:', 'num_cilia_images', TextInput(multiline=False)),
+                ]
+            )
+        )
+        self.append_widget("Visualize valid cilia on images?", parent_name, cb)
         # TODO Interactive elements
 
-        self.add_widget(Label(text="Visualize nuclei on images?"))
-        self.nuclei_label = CheckBox()
-        self.add_widget(self.nuclei_label)
+        parent_name = "cent_label"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    ('Number of images to label for centriole image labeling, if specific number of im wanted:', 'num_cent_images', TextInput(multiline=False)),
+                ]
+            )
+        )
+        self.append_widget("Visualize valid centriole on images?", parent_name, cb)
+
+        parent_name = "accuracy_check"
+        cb = CheckBox()
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    ('True results of cilia path, if accuracy checker wanted:', 'true_results_for_accuracy_checker', TextInput(multiline=False)),
+                ]
+            )
+        )
+        self.append_widget("Check accuracy?", parent_name, cb)
         # TODO Interactive elements
-
-        self.add_widget(Label(text="Visualize valid cilia on images?"))
-        self.cilia_label = CheckBox()
-        self.add_widget(self.cilia_label)
-        # TODO Interactive elements
-
-        self.add_widget(Label(text="Visualize valid centriole on images?"))
-        self.cent_label = CheckBox()
-        self.add_widget(self.cent_label)
-        # TODO Interactive elements
-
-        self.add_widget(Label(text="Check accuracy?"))
-        self.accuracy_check = CheckBox()
-        self.add_widget(self.accuracy_check)
-        # TODO Interactive elements
-
-
-
-
-
 
 
 class Gui(App):
     def build(self):
         return MyGrid()
 
+
 def gui():
     Gui().run()
+
 
 def main():
     args = parse_args()
