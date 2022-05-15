@@ -18,6 +18,7 @@ from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
+from kivy.uix.button import Button
 
 
 def parse_args():
@@ -179,47 +180,44 @@ def parse_args():
 
 
 class MyGrid(GridLayout):
-
     def append_widget(self, label_text, widget_name, widget, index=None):
         self[widget_name] = widget
-        label_name = f'Label {widget_name}'
+        label_name = f"Label {widget_name}"
         self[label_name] = Label(text=label_text)
 
         if index is None:
-            self.add_widget(self[label_name])
+            self.inside.add_widget(self[label_name])
             self.cur_widgets.append(label_name)
 
-            self.add_widget(self[widget_name])
+            self.inside.add_widget(self[widget_name])
             self.cur_widgets.append(widget_name)
         else:
             # Invert because grid layout indexes the bottom of the screen as 0
-            self.add_widget(self[widget_name], index=-index)
+            self.inside.add_widget(self[widget_name], index=-index)
             self.cur_widgets.insert(index, widget_name)
 
-            self.add_widget(self[label_name], index=-index)
-            self.cur_widgets.insert(index, f'Label {widget_name}')
+            self.inside.add_widget(self[label_name], index=-index)
+            self.cur_widgets.insert(index, f"Label {widget_name}")
 
     def delete_widget(self, widget_name):
-        print('In delete_widget')
-        
-        label_name = f'Label {widget_name}'
+        print("In delete_widget")
+
+        label_name = f"Label {widget_name}"
         print(widget_name)
         print(label_name)
 
         print(self[widget_name])
         print(self[label_name])
         print(self.cur_widgets)
-        self.remove_widget(self[widget_name])
+        self.inside.remove_widget(self[widget_name])
         self.cur_widgets.remove(widget_name)
 
-        self.remove_widget(self[label_name])
+        self.inside.remove_widget(self[label_name])
         self.cur_widgets.remove(label_name)
 
         print(self[widget_name])
         print(self[label_name])
         print(self.cur_widgets)
-        
-
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
@@ -228,16 +226,18 @@ class MyGrid(GridLayout):
         try:
             return getattr(self, key)
         except:
-            return 'Doesn\'t exist!'
+            return "Doesn't exist!"
 
     def create_dynamic_checkbox_handler(self, parent_widget_name, dependencies):
         def on_checkbox_handler(checkbox, value):
-            print('In handler')
+            print("In handler")
             parent_index = self.cur_widgets.index(parent_widget_name)
 
             if value:
                 for (dep_label, dep_widget_name, widget) in reversed(dependencies):
-                    self.append_widget(dep_label, dep_widget_name, widget, (parent_index+1))
+                    self.append_widget(
+                        dep_label, dep_widget_name, widget, (parent_index + 1)
+                    )
             else:
                 for (_, dep_widget_name, _) in dependencies:
                     self.delete_widget(dep_widget_name)
@@ -246,20 +246,35 @@ class MyGrid(GridLayout):
 
     def __init__(self, **kwargs):
         super(MyGrid, self).__init__(**kwargs)
-        self.cols = 2
+        self.cols = 1
+
+        self.inside = GridLayout() # Create a new grid layout
+        self.inside.cols = 2 # set columns for the new grid layout
 
         self.cur_widgets = []
 
-        self.append_widget("Input CSVs (from CellProfiler):", 'input_csvs', TextInput(multiline=False))
-        self.append_widget("Input images (from CellProfiler):", 'input_images', TextInput(multiline=False))
-        self.append_widget("Output folder:", 'output', TextInput(multiline=False))
+        self.append_widget(
+            "Input CSVs (from CellProfiler):", "input_csvs", TextInput(multiline=False)
+        )
+        self.append_widget(
+            "Input images (from CellProfiler):",
+            "input_images",
+            TextInput(multiline=False),
+        )
+        self.append_widget("Output folder:", "output", TextInput(multiline=False))
 
         parent_name = "microm"
         cb = CheckBox()
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
-                [('Scale factor to convert pixels to micrometers:', 'factor', TextInput(multiline=False))]
+                [
+                    (
+                        "Scale factor to convert pixels to micrometers:",
+                        "factor",
+                        TextInput(multiline=False),
+                    )
+                ],
             )
         )
         self.append_widget("Convert pixels to micrometers?", parent_name, cb)
@@ -275,9 +290,17 @@ class MyGrid(GridLayout):
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
-                    ('Number of images to label for cellprofiler image labeling, if specific number of im wanted:', 'num_cellprofiler_images', TextInput(multiline=False)),
-                    ('Label centriole images for cellprofiler image labeling?', 'centriole_cellprofiler_images', CheckBox()),
-                ]
+                    (
+                        "Number of images to label for cellprofiler image labeling, if specific number of im wanted:",
+                        "num_cellprofiler_images",
+                        TextInput(multiline=False),
+                    ),
+                    (
+                        "Label centriole images for cellprofiler image labeling?",
+                        "centriole_cellprofiler_images",
+                        CheckBox(),
+                    ),
+                ],
             )
         )
         self.append_widget("Perform labeling of CellProfiler images?", parent_name, cb)
@@ -290,8 +313,12 @@ class MyGrid(GridLayout):
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
-                    ('Number of images to label for c2c image labeling, if specific number of im wanted:', 'num_c2c_images', TextInput(multiline=False)),
-                ]
+                    (
+                        "Number of images to label for c2c image labeling, if specific number of im wanted:",
+                        "num_c2c_images",
+                        TextInput(multiline=False),
+                    ),
+                ],
             )
         )
         self.append_widget("Visualize c2c output?", parent_name, cb)
@@ -302,8 +329,12 @@ class MyGrid(GridLayout):
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
-                    ('Number of images to label for nuclei image labeling, if specific number of im wanted:', 'num_nuclei_images', TextInput(multiline=False)),
-                ]
+                    (
+                        "Number of images to label for nuclei image labeling, if specific number of im wanted:",
+                        "num_nuclei_images",
+                        TextInput(multiline=False),
+                    ),
+                ],
             )
         )
         self.append_widget("Visualize nuclei on images?", parent_name, cb)
@@ -314,12 +345,15 @@ class MyGrid(GridLayout):
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
-                    ('Number of images to label for cilia image labeling, if specific number of im wanted:', 'num_cilia_images', TextInput(multiline=False)),
-                ]
+                    (
+                        "Number of images to label for cilia image labeling, if specific number of im wanted:",
+                        "num_cilia_images",
+                        TextInput(multiline=False),
+                    ),
+                ],
             )
         )
         self.append_widget("Visualize valid cilia on images?", parent_name, cb)
-        # TODO Interactive elements
 
         parent_name = "cent_label"
         cb = CheckBox()
@@ -327,8 +361,12 @@ class MyGrid(GridLayout):
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
-                    ('Number of images to label for centriole image labeling, if specific number of im wanted:', 'num_cent_images', TextInput(multiline=False)),
-                ]
+                    (
+                        "Number of images to label for centriole image labeling, if specific number of im wanted:",
+                        "num_cent_images",
+                        TextInput(multiline=False),
+                    ),
+                ],
             )
         )
         self.append_widget("Visualize valid centriole on images?", parent_name, cb)
@@ -339,12 +377,20 @@ class MyGrid(GridLayout):
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
-                    ('True results of cilia path, if accuracy checker wanted:', 'true_results_for_accuracy_checker', TextInput(multiline=False)),
-                ]
+                    (
+                        "True results of cilia path, if accuracy checker wanted:",
+                        "true_results_for_accuracy_checker",
+                        TextInput(multiline=False),
+                    ),
+                ],
             )
         )
         self.append_widget("Check accuracy?", parent_name, cb)
-        # TODO Interactive elements
+
+        # Primary content
+        self.add_widget(self.inside)
+        self.submit = Button(text="Submit")  
+        self.add_widget(self.submit)
 
 
 class Gui(App):
