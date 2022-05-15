@@ -11,6 +11,12 @@ from automated_cilia_measurements.data_table import main as data_table
 from automated_cilia_measurements.label_c2c import main as label_c2c
 from automated_cilia_measurements.label_valid_cilia import main as organelle_labeler
 from automated_cilia_measurements.check_accuracy import main as check_accuracy
+import kivy
+from kivy.app import App 
+from kivy.uix.label import Label
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.checkbox import CheckBox
 
 
 def parse_args():
@@ -170,6 +176,88 @@ def parse_args():
     )
     return vars(parser.parse_args())
 
+class MyGrid(GridLayout):
+    def __init__(self, **kwargs):
+        super(MyGrid, self).__init__(**kwargs)
+        self.cols = 2
+
+        self.add_widget(Label(text="Input CSVs (from CellProfiler):"))
+        self.input_csvs = TextInput(multiline=False)
+        self.add_widget(self.input_csvs)
+
+        self.add_widget(Label(text="Input images (from CellProfiler):"))
+        self.input_images = TextInput(multiline=False)
+        self.add_widget(self.input_images)
+
+        self.add_widget(Label(text="Output folder"))
+        self.output = TextInput(multiline=False)
+        self.add_widget(self.output)
+
+        self.add_widget(Label(text="Convert pixels to micrometers?"))
+        self.microm = CheckBox()
+        self.add_widget(self.microm)
+        # TODO INTERACTIVE ELEMENTS
+        self.add_widget(Label(text="Make dendrograms?"))
+        self.heirarchical = CheckBox()
+        self.add_widget(self.heirarchical)
+
+        self.add_widget(Label(text="Perform XMeans?"))
+        self.xmeans = CheckBox()
+        self.add_widget(self.xmeans)
+
+        self.add_widget(Label(text="Perform PCA?"))
+        self.pca = CheckBox()
+        self.add_widget(self.pca)
+
+        self.add_widget(Label(text="Perform UMAP?"))
+        self.umap = CheckBox()
+        self.add_widget(self.umap)
+
+        self.add_widget(Label(text="Perform labeling of CellProfiler images?"))
+        self.cellprofiler_labeling = CheckBox()
+        self.add_widget(self.cellprofiler_labeling)
+        # TODO INTERACTIVE ELEMENTS
+        self.add_widget(Label(text="Make a data table?"))
+        self.data_table = CheckBox()
+        self.add_widget(self.data_table)
+
+        self.add_widget(Label(text="Visualize c2c output?"))
+        self.label_c2c = CheckBox()
+        self.add_widget(self.label_c2c)
+        # TODO Interactive elements
+
+        self.add_widget(Label(text="Visualize nuclei on images?"))
+        self.nuclei_label = CheckBox()
+        self.add_widget(self.nuclei_label)
+        # TODO Interactive elements
+
+        self.add_widget(Label(text="Visualize valid cilia on images?"))
+        self.cilia_label = CheckBox()
+        self.add_widget(self.cilia_label)
+        # TODO Interactive elements
+
+        self.add_widget(Label(text="Visualize valid centriole on images?"))
+        self.cent_label = CheckBox()
+        self.add_widget(self.cent_label)
+        # TODO Interactive elements
+
+        self.add_widget(Label(text="Check accuracy?"))
+        self.accuracy_check = CheckBox()
+        self.add_widget(self.accuracy_check)
+        # TODO Interactive elements
+
+
+
+
+
+
+
+class Gui(App):
+    def build(self):
+        return MyGrid()
+
+def gui():
+    Gui().run()
 
 def main():
     args = parse_args()
