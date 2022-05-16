@@ -11,6 +11,7 @@ from automated_cilia_measurements.launcher import main as run_scripts
 # Global instance of the application, used to stop the gui programmatically
 instance = None
 
+
 class MyGrid(GridLayout):
     def append_widget(self, label_text, widget_name, widget, index=None):
         self[widget_name] = widget
@@ -66,29 +67,33 @@ class MyGrid(GridLayout):
     def submit_callback(self, _):
         instance.stop()
         run_scripts(
-            output=self['output'].text,
-            input_csvs=self['input_csvs'].text,
-            input_images=self['input_images'].text,
-            factor=self['factor'] and self['factor'].text,
-            xmeans=self['xmeans'].active,
-            pca_features=self['pca_features'].active,
-            heirarchical=self['heirarchical'].active,
-            umap=self['umap'].active,
-            cellprofiler_labeling=self['cellprofiler_labeling'].active,
-            num_cellprofiler_images=self['num_cellprofiler_images'] and self['num_cellprofiler_images'].text,
-            centriole_cellprofiler_images=self['centriole_cellprofiler_images'] and self['centriole_cellprofiler_images'].active,
+            output=self["output"].text,
+            input_csvs=self["input_csvs"].text,
+            input_images=self["input_images"].text,
+            factor=self["factor"] and self["factor"].text,
+            xmeans=self["xmeans"].active,
+            pca_features=self["pca_features"].active,
+            heirarchical=self["heirarchical"].active,
+            umap=self["umap"].active,
+            cellprofiler_labeling=self["cellprofiler_labeling"].active,
+            num_cellprofiler_images=self["num_cellprofiler_images"]
+            and self["num_cellprofiler_images"].text,
+            centriole_cellprofiler_images=self["centriole_cellprofiler_images"]
+            and self["centriole_cellprofiler_images"].active,
             data_table=self["data_table"].active,
             label_c2c=self["label_c2c"].active,
-            num_c2c_images=self['num_c2c_images'] and self['num_c2c_images'].text,
-            nuclei_label=self['nuclei_label'].active,
-            num_nuclei_images=self['num_nuclei_images'] and self['num_nuclei_images'].text,
-            cilia_label=self['cilia_label'].active,
-            num_cilia_images=self['num_cilia_images'] and self['num_cilia_images'].text,
-            cent_label=self['cent_label'].active,
-            num_cent_images=self['num_cent_images'] and self['num_cent_images'].text,
-            true_results_for_accuracy_checker=self['true_results_for_accuracy_checker'] and self['true_results_for_accuracy_checker'].text,
+            num_c2c_images=self["num_c2c_images"] and self["num_c2c_images"].text,
+            nuclei_label=self["nuclei_label"].active,
+            num_nuclei_images=self["num_nuclei_images"]
+            and self["num_nuclei_images"].text,
+            cilia_label=self["cilia_label"].active,
+            num_cilia_images=self["num_cilia_images"] and self["num_cilia_images"].text,
+            cent_label=self["cent_label"].active,
+            num_cent_images=self["num_cent_images"] and self["num_cent_images"].text,
+            true_results_for_accuracy_checker=self["true_results_for_accuracy_checker"]
+            and self["true_results_for_accuracy_checker"].text,
         )
-    
+
     def __init__(self, **kwargs):
         super(MyGrid, self).__init__(**kwargs)
         self.cols = 1
@@ -249,5 +254,6 @@ def main():
     instance = Gui()
     instance.run()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
