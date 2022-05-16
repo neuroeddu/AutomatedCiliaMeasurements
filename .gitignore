@@ -3,3 +3,5 @@ sandbox.py
 __pycache__
 *.html
 dist/
+venv/
+*.whl
