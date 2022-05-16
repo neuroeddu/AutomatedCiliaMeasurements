@@ -22,7 +22,7 @@ bokeh = "^2.4.2"
 
 [tool.poetry.scripts]
 automated_cilia_measurements = "automated_cilia_measurements.launcher:main"
-automated_cilia_measurements_gui = "automated_cilia_measurements.launcher:gui"
+automated_cilia_measurements_gui = "automated_cilia_measurements.gui:main"
 automated_cilia_measurements_c2c = "automated_cilia_measurements.center2center:main"
 automated_cilia_measurements_accuracy = "automated_cilia_measurements.check_accuracy:main"
 automated_cilia_measurements_clustering = "automated_cilia_measurements.clustering:main"

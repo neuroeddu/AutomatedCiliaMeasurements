@@ -38,8 +38,6 @@ def main(**args):
         C2C_OUTPUT_PATH + "/new_cilia.csv", skipinitialspace=True
     )
     grouped_valid_cilia = valid_cilia_df.groupby(["0"])
-    image_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Image.csv", skipinitialspace=True)
-
     df_result = make_result_dict(
         cell_df,
         cilia_df,
