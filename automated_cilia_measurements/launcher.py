@@ -206,6 +206,10 @@ def main(**args):
         or args.get("heirarchical")
         or args.get("umap")
     ):
+        cluster_output = os.path.join(dir_out, "clustering_output")
+
+        if not os.path.exists(cluster_output):
+            os.mkdir(cluster_output)
 
         clustering(
             measurements=csvs_in,
@@ -214,6 +218,7 @@ def main(**args):
             pca_features=args.get("pca_features"),
             heirarchical=args.get("heirarchical"),
             umap=args.get("umap"),
+            output=cluster_output
         )
 
     if args.get("cellprofiler_labeling"):
