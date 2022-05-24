@@ -218,7 +218,7 @@ def main(**args):
             pca_features=args.get("pca_features"),
             heirarchical=args.get("heirarchical"),
             umap=args.get("umap"),
-            output=cluster_output
+            output=cluster_output,
         )
 
     if args.get("cellprofiler_labeling"):

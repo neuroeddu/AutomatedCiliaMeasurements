@@ -50,7 +50,7 @@ def parse_args():
         help="output folder to save clustering results to",
         required=True,
     )
-    
+
     return vars(parser.parse_args())
 
 
@@ -124,7 +124,7 @@ def main(**args):
         if args.get("umap"):
             umap_(full_df, num, args.get("output"))
         if args.get("pca_features"):
-            pca_features(full_df, pca_7d, num, args.get("output") )
+            pca_features(full_df, pca_7d, num, args.get("output"))
         if args.get("heirarchical"):
             heirarchical_clustering(full_df, num, args.get("output"))
         if args.get("xmeans"):
@@ -290,10 +290,7 @@ def umap_(full_df, num, output):
     plt.gca().set_aspect("equal", "datalim")
     plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
     plt.title(f"UMAP projection for Image {num}", fontsize=24)
-    if output:
-        plt.savefig(join(output, f'UMAP_im_{num}.png'))
-    else:
-        plt.show()
+    plt.savefig(join(output, f"UMAP_im_{num}.png"))
 
 
 def pca_features(full_df, pca_7d, num, output):
@@ -302,17 +299,15 @@ def pca_features(full_df, pca_7d, num, output):
     columns_mapping = list(full_df.columns)
 
     for component in components_list:
-            component = component.tolist()
-            max_value = max(component)
+        component = component.tolist()
+        max_value = max(component)
 
-    if output:
-        with open(join(output, f'pca_features_im_{num}.txt'), 'w') as f:
-            f.write(f"the important features for each principal component in image {num} are: ")
-            f.write(columns_mapping[component.index(max_value)])
+    with open(join(output, f"pca_features_im_{num}.txt"), "w") as f:
+        f.write(
+            f"the important features for each principal component in image {num} are: "
+        )
+        f.write(columns_mapping[component.index(max_value)])
 
-    else:
-        print(f"the important features for each principal component in image {num} are: ")
-        print(columns_mapping[component.index(max_value)])
 
 def heirarchical_clustering(full_df, num, output):
     plt.figure(figsize=(10, 7))
@@ -320,10 +315,7 @@ def heirarchical_clustering(full_df, num, output):
     dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
     plt.xlabel("Samples")
     plt.ylabel("Distance between samples")
-    if output:
-        plt.savefig(join(output, f'dendrogram_im_{num}.png'))
-    else:
-        plt.show()
+    plt.savefig(join(output, f"dendrogram_im_{num}.png"))
 
 
 def xmeans(full_df, clf, num, pca_2d, output):
@@ -379,11 +371,7 @@ def xmeans(full_df, clf, num, pca_2d, output):
 
     fig = go.Figure(dict(data=clusters_li, layout=layout))
 
-    if output:
-        fig.write_html(join(output, f'xmeans_im_{num}.png'))
-
-    else:
-        plot(fig)
+    fig.write_html(join(output, f"xmeans_im_{num}.png"))
 
 
 if __name__ == "__main__":
