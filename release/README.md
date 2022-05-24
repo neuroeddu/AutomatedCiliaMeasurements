@@ -4,12 +4,9 @@ Note that Python 3.9 is required. The application does not work for other versio
 
 ## Linux/Mac
 
-### Install
-
-To install the application, run `source install.sh`. This creates a Python virutal environment `venv`, installs the wheel into it, and activates the virtual environment.
-
-### Run
-
-To run the GUI, run the installer as specified above and then run `sh run.sh`. If you wish to use the CLI, make sure you have the application installed in your Python binary (if you ran the installer, this is in the `venv` virtual environment) and run `automated_cilia_measurements --help`.
+First, navigate to the Linux_and_Mac folder. To run the GUI, run `sh gui.sh`. To use the CLI,  run `sh install.sh`, `source ../venv/bin/activate` and finally `automated_cilia_measurements --help`.
 
 ## Windows
+
+First, navigate to the Windows folder in the File Explorer.  To run the GUI, right click on `gui.ps1` and select `Run in Powershell`.  To use the CLI, right click on `install.ps1` and select `Run in Powershell`.  Then, in a Powershell terminal (while running as administrator and making sure you have the correct permissions to run commands), type `. "../venv/Scripts/activate.ps1"` and run `automated_cilia_measurements --help`.
+
