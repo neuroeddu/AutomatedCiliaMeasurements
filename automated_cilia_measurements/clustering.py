@@ -286,11 +286,13 @@ def normalize_and_clean(
 def umap_(full_df, num, output):
     reducer = umap.UMAP()
     embedding = reducer.fit_transform(full_df)
+    fig1, ax1 = plt.subplots()
     plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
     plt.gca().set_aspect("equal", "datalim")
     plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
     plt.title(f"UMAP projection for Image {num}", fontsize=24)
     plt.savefig(join(output, f"UMAP_im_{num}.png"))
+    plt.close()
 
 
 def pca_features(full_df, pca_7d, num, output):
@@ -316,6 +318,7 @@ def heirarchical_clustering(full_df, num, output):
     plt.xlabel("Samples")
     plt.ylabel("Distance between samples")
     plt.savefig(join(output, f"dendrogram_im_{num}.png"))
+    plt.close()
 
 
 def xmeans(full_df, clf, num, pca_2d, output):
@@ -371,7 +374,7 @@ def xmeans(full_df, clf, num, pca_2d, output):
 
     fig = go.Figure(dict(data=clusters_li, layout=layout))
 
-    fig.write_html(join(output, f"xmeans_im_{num}.png"))
+    fig.write_html(join(output, f"xmeans_im_{num}.html"))
 
 
 if __name__ == "__main__":
