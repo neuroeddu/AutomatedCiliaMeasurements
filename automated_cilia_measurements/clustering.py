@@ -324,29 +324,31 @@ def heirarchical_clustering(full_df, num, output):
 def xmeans(full_df, clf, num, pca_2d, output):
     # Perform X-Means
     clf.fit(full_df)
+    with open(join(output, f"mean_val_features_{num}.txt"), 'a+') as f:
+        # Print out best result of K-Means
+        f.write(f"for image {num}:\n")  # 3,4,5
+        params = clf.best_params_  # n_clusters=3
+        best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
 
-    # Print out best result of K-Means
-    print(f"for image {num}:")  # 3,4,5
-    params = clf.best_params_  # n_clusters=3
-    best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
+        num_clusters = params["n_clusters"]
+        f.write(f"Best number of clusters is {num_clusters}\n")
 
-    num_clusters = params["n_clusters"]
-    print(f"Best number of clusters is {num_clusters}")
-
-    y_kmeans = best_clf.predict(full_df)
-    full_df["Cluster"] = y_kmeans
-
-    for cluster in range(num_clusters):
-        cluster_df = full_df[full_df["Cluster"] == cluster]
-        mean_df = cluster_df.mean()
-        print(f"The mean values for features in image {num} in cluster {cluster} are")
-        print(mean_df)
+        y_kmeans = best_clf.predict(full_df)
+        full_df["Cluster"] = y_kmeans
+        for cluster in range(num_clusters):
+            cluster_df = full_df[full_df["Cluster"] == cluster]
+            mean_df = cluster_df.mean()
+            mean_df = mean_df.to_string()
+            f.write(f"The mean values for features in image {num} in cluster {cluster} are\n")
+            f.write(mean_df)
+            f.write('\n*****************************************\n')
 
     # Perform PCA to get the data in a reduced form
     PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
     PCs_2d.columns = ["PC1_2d", "PC2_2d"]
     full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
-
+    
+    full_df.to_csv(join(output, f"xmeans_data_im_{num}.csv"))
     # Make data points for each cluster
     clusters_li = []
     for cluster in range(num_clusters):
