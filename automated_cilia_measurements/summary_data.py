@@ -27,6 +27,7 @@ def num_nuc_per_im(image_df, **kwargs):
     result = sorted(result)
     return result
 
+
 # Calculate nuclei to cilia ratio
 def nuc_per_cilia(grouped_valid_cilia, num_im, image_df, **kwargs):
     num_nuc = num_nuc_per_im(image_df)
@@ -52,7 +53,9 @@ def nuc_per_cent(grouped_valid_cent, num_im, image_df, **kwargs):
 
 # Calculate number of cilia per image
 def num_cilia_per_im(grouped_valid_cilia, num_im, **kwargs):
-    result = [len(make_lists(num, grouped_valid_cilia, "0")) for num in range(1, num_im + 1)]
+    result = [
+        len(make_lists(num, grouped_valid_cilia, "0")) for num in range(1, num_im + 1)
+    ]
     result = sorted(result)
     return result
 
@@ -241,7 +244,7 @@ def cilia_area_to_len(valid_cilia_df, cilia_df, **kwargs):
 # NOTE This assumes the cell-> centriole, centriole -> cilia
 # Calculate ratio of number of cilia to number of centrioles
 def nuc_cilia_to_nuc_cent(grouped_associates, num_im, image_df, **kwargs):
-    # cilia is not there if cilia ==-2, cent is not there if empty list 
+    # cilia is not there if cilia ==-2, cent is not there if empty list
     result_cilia = []
     result_cent = []
     nuc_count = image_df["Count_Nucleus"].values.tolist()
@@ -251,13 +254,13 @@ def nuc_cilia_to_nuc_cent(grouped_associates, num_im, image_df, **kwargs):
         associates_list = make_lists(num, grouped_associates)
 
         cilia_present = 0
-        cent_present = 0 
+        cent_present = 0
         for row in associates_list:
             if row[4] != -2.0:
                 cilia_present += 1
-            cent_li = row[2].strip('[]')
+            cent_li = row[2].strip("[]")
             if cent_li:
-                if not ',' in cent_li:
+                if not "," in cent_li:
                     cent_present += 1
                 else:
                     cent_present += 2
