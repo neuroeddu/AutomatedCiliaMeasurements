@@ -6,8 +6,8 @@ from bokeh.layouts import column, row
 from functools import partial
 
 ################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/ciliaJan22/spreadsheets_im_output"
-OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/c2coutput/threshold_none"
+CSV_FOLDER = "/Users/sneha/Desktop/spreadsheets_im_output"
+OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/c2c"
 ################################# TO CHANGE #################################
 # Initialize figures
 def make_figure(title, x_axis_label="", y_axis_label=""):
@@ -37,6 +37,15 @@ def nuc_per_cilia(grouped_valid_cilia, num_im, image_df, **kwargs):
 
     return nuc_per_cilia
 
+def nuc_per_cent(grouped_valid_cent, num_im, image_df, **kwargs):
+    num_nuc = num_nuc_per_im(image_df)
+    num_cent = num_cent_per_im(grouped_valid_cent, num_im)
+
+    nuc_per_cent = []
+    for im in range(num_im):
+        nuc_per_cent.append(num_cent[im] / num_nuc[im])
+
+    return nuc_per_cent
 
 # Calculate number of cilia per image
 def num_cilia_per_im(grouped_valid_cilia, num_im, **kwargs):
@@ -44,7 +53,11 @@ def num_cilia_per_im(grouped_valid_cilia, num_im, **kwargs):
         len(make_lists(num, grouped_valid_cilia, "0")) for num in range(1, num_im + 1)
     ]
 
-
+# Calculate number of centrioles per image
+def num_cent_per_im(grouped_valid_cent, num_im, **kwargs):
+    return [
+        len(make_lists(num, grouped_valid_cent, "0")) for num in range(1, num_im + 1)
+    ]
 # Make grouped dataframes into lists
 def make_lists(num_im, grouped, colname="ImageNumber", **kwargs):
     """
@@ -72,53 +85,24 @@ def single_cent_to_two_cent(grouped_associates, num_im, **kwargs):
         ratios.append((len(associates_list) - double) / double)
     return ratios
 
+def how_many_blank_per_size_helper(grouped_blank, num_im, col_idx, grouped_valid_blank=None):
 
-# Calculate ratio of the length of the cilia to the size of the nucleus for each cell
-def len_cilia_to_size_nucleus(
-    grouped_cell, grouped_cilia, grouped_valid_cilia, num_im, **kwargs
-):
-    result = []
-    for num in range(1, num_im + 1):
-        cell_li = make_lists(num, grouped_cell)
-        avg_nuc = sum(x[1] for x in cell_li) / len(cell_li)
-
-        valid_cilia = make_lists(num, grouped_valid_cilia, "0")
-        valid_cilia = set(x[1] for x in valid_cilia)  # Column 1 contains cilia number
-        cilia_li = make_lists(num, grouped_cilia)
-
-        cilia_lens = []
-        for cilia in cilia_li:
-            if int(cilia[0]) not in valid_cilia:
-                continue
-            cilia_lens.append(cilia[15])
-        avg_cilia = sum(cilia_lens) / len(cilia_lens)
-        result.append(avg_cilia / avg_nuc)
-    return result
-
-
-# Calculate number of cilia per size for each column
-def how_many_cilia_per_size(grouped_cilia, grouped_valid_cilia, num_im, col_idx):
-    if col_idx == 0:
-        NUM_BINS = 1000
-    elif col_idx == 17:
-        NUM_BINS = 7
-    else:
-        NUM_BINS = 500
+    NUM_BINS = 500
     result = [[] for bin in range(0, NUM_BINS)]
-
     col_idx_to_range = {}
     # ex list(range(50,-1,-5))
     for num in range(1, num_im + 1):
-        valid_cilia = make_lists(num, grouped_valid_cilia, "0")
-        valid_cilia = set(x[1] for x in valid_cilia)  # Column 1 contains cilia number
-        cilia_li = make_lists(num, grouped_cilia)
-
-        cilia_size = []
-        for cilia in cilia_li:
-            if int(cilia[0]) not in valid_cilia:
+        if grouped_valid_blank:
+            valid_blank = make_lists(num, grouped_valid_blank, "0")
+            valid_blank = set(x[1] for x in valid_blank)  # Column 1 contains cilia number
+        
+        blank_li = make_lists(num, grouped_blank)
+        blank_size = []
+        for blank in blank_li:
+            if grouped_valid_blank and int(blank[0]) not in valid_blank:
                 continue
 
-            cur_area = cilia[col_idx]
+            cur_area = blank[col_idx]
             ranges = list(range(NUM_BINS, 0, -1))
             for c_ind, bucket_distance in enumerate(ranges):
                 if cur_area - bucket_distance >= 0:
@@ -128,7 +112,16 @@ def how_many_cilia_per_size(grouped_cilia, grouped_valid_cilia, num_im, col_idx)
         for bucket in result:
             new_result.append(len(bucket))
     return new_result
+    
+# Calculate number of cilia per size for each column
+def how_many_cilia_per_size(grouped_cilia, num_im, col_idx, grouped_valid_cilia,  **kwargs):
+    return how_many_blank_per_size_helper(grouped_cilia, num_im, col_idx, grouped_valid_cilia)
 
+def how_many_nuc_per_size(grouped_cell, num_im, col_idx, **kwargs):
+    return how_many_blank_per_size_helper(grouped_cell, num_im, col_idx)
+
+def how_many_cent_per_size(grouped_centriole, num_im, col_idx, grouped_valid_cent, **kwargs):
+    return how_many_blank_per_size_helper(grouped_centriole, num_im, col_idx, grouped_valid_cent)
 
 # Calculate per-image averages of all columns for cilia
 def avg_blank_cilia(grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs):
@@ -153,14 +146,13 @@ def avg_blank_helper(grouped, valid, num_im, col_idx):
         for thing in measurements_li:
             if int(thing[0]) not in valid_li:
                 continue
-            size.append(thing[col_idx + 1])
+            size.append(thing[col_idx]) #TODO Check this but I am pretty sure this should NOT be col+1 because col is now 100% accurate
         result.append(sum(size) / len(size))
     return result
 
-
 # Calculate per-image averages of all columns for nuclei
 def avg_blank_nucleus(grouped_cell, col, **kwargs):
-    mean_df = grouped_cell[col].mean()
+    mean_df = grouped_cell[col+1].mean() # NOTE the +1 is because we assume that ImageNumber is taken out when calculating indices, but here it is kept in 
     return mean_df.values.tolist()
 
 
@@ -214,6 +206,7 @@ def cilia_area_to_len(valid_cilia_df, cilia_df, **kwargs):
 
 
 # NOTE This assumes the cell-> centriole, centriole -> cilia
+# TODO Look back on this bc it may be wrong now since the assumption is just cell-> centriole, cell-> cilia
 # Calculate ratio of number of cilia to number of centrioles
 def nuc_cilia_to_nuc_cent(grouped_associates, num_im, image_df, **kwargs):
     # cilia is not there if cilia ==-2, cent is not there if nucleus is not represented
@@ -261,37 +254,6 @@ def avg_length_cilia(grouped_cilia, grouped_valid_cilia, num_im, **kwargs):
         avg_len_cilia.append(sum(cilia_size) / len(cilia_size))
     return num_cilia, avg_len_cilia, "Number of cilia", "Average length of cilia"
 
-
-# Calculate nuclei area to centriole number
-def nuc_area_to_cent(
-    grouped_associates, grouped_cell, grouped_centriole, num_im, **kwargs
-):
-    # so, what do we have to do?
-    nuc_areas = []
-    cent_areas = []
-    for num in range(1, num_im + 1):
-        associates_li = make_lists(num, grouped_associates)
-        cell_li = make_lists(num, grouped_cell)
-        cent_li = make_lists(num, grouped_centriole)
-
-        for row in associates_li:
-            cur_nuc = (
-                int(row[0]) - 1
-            )  # this is 1 indexed in the output file so make it 0 indexed for ez access
-            nuc_area = cell_li[cur_nuc][1]
-            cur_cent = row[2].strip("[]")
-            if not "," in cur_cent:  # we are at a singleton, just get the area
-                nuc_areas.append(nuc_area)
-                cent_areas.append(cent_li[int(cur_cent) - 1][1])
-            else:
-                cents = cur_cent.split(", ")
-                for cent in cents:
-                    nuc_areas.append(nuc_area)
-                    cent_areas.append(cent_li[int(cent) - 1][1])
-
-    return nuc_areas, cent_areas, "Nucleus area", "Centriole area"
-
-
 # Calculate ratio of centriole area to cilia number
 def cent_area_to_cilia(
     grouped_associates, grouped_cilia, grouped_centriole, num_im, attr, **kwargs
@@ -326,6 +288,77 @@ def cent_area_to_cilia(
 
     return cent_areas, cilia_measures, "Centriole area", f"Cilia {attr}"
 
+def avg_num_cilia_to_measure(grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs):
+    num_cilia = num_cilia_per_im(grouped_valid_cilia, num_im)
+    measure = avg_blank_helper(grouped_cilia, grouped_valid_cilia, num_im, col_idx)
+    return [
+        num_cilia,
+        measure,
+        "Number of cilia",
+        "Cilia measure",
+    ]
+
+def measure_cilia_to_length(grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs):
+    measure = []
+    length = []
+    for num in range(1, num_im + 1):
+        valid_li = make_lists(num, grouped_valid_cilia, "0")
+        valid_li = set(x[1] for x in valid_li)  # Column 1 contains cilia number
+        measurements_li = make_lists(num, grouped_cilia)
+
+        for thing in measurements_li:
+            if int(thing[0]) not in valid_li:
+                continue
+            measure.append(thing[col_idx])
+            length.append(thing[15])
+
+    return [
+        measure,
+        length,
+        "Cilia measure",
+        "Length of cilia"
+    ]
+
+def num_cent_to_cilia(grouped_valid_cilia, grouped_valid_cent, num_im, **kwargs):
+    cilia=num_cilia_per_im(grouped_valid_cilia, num_im)
+    cent=num_cent_per_im(grouped_valid_cent, num_im)
+    return [
+        cent,
+        cilia,
+        "Number of centrioles",
+        "Number of cilia"
+    ]
+
+def num_nuc_to_cent(image_df, grouped_valid_cent, num_im, **kwargs):
+    nuc=num_nuc_per_im(image_df)
+    cent=num_cent_per_im(grouped_valid_cent, num_im)
+    return [
+        cent,
+        nuc,
+        "Number of centrioles",
+        "Number of nuclei"
+    ]
+
+def num_nuc_to_cilia_measure(image_df, grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs):
+    nuc=num_nuc_per_im(image_df)
+    measure = avg_blank_helper(grouped_cilia, grouped_valid_cilia, num_im, col_idx)
+    return [
+        nuc,
+        measure,
+        "Number of nuclei",
+        "Cilia measure"
+    ]
+
+def num_nuc_to_solidity(grouped_cell, image_df, **kwargs):
+    mean_df = grouped_cell[25].mean()
+    solidity = mean_df.values.tolist()
+    nuc=num_nuc_per_im(image_df)
+    return [
+        nuc,
+        solidity,
+        "Number of nuclei", 
+        "Nuclei solidity"
+    ]
 
 def main():
     # Load data
@@ -338,7 +371,11 @@ def main():
     grouped_centriole = centriole_df.groupby(["ImageNumber"])
     cilia_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Cilia.csv", skipinitialspace=True)
     grouped_cilia = cilia_df.groupby(["ImageNumber"])
-    cols_to_use = list(cilia_df.columns)[2:]
+
+    cols_to_use=[('AreaShape_Area', 1), ('AreaShape_Compactness', 9), ('AreaShape_Eccentricity', 10), ('AreaShape_EquivalentDiameter', 11), ('AreaShape_EulerNumber', 12), ('AreaShape_Extent', 13), ('AreaShape_FormFactor', 14), ('AreaShape_MajorAxisLength', 15), ('AreaShape_MaxFeretDiameter', 16), ('AreaShape_MaximumRadius', 17), ('AreaShape_MeanRadius', 18), ('AreaShape_MinFeretDiameter', 20), ('AreaShape_MinorAxisLength', 21), ('AreaShape_Orientation', 22), ('AreaShape_Perimeter', 23), ('AreaShape_Solidity', 24)]
+    cols_to_use_cent=[('AreaShape_Area', 1), ('AreaShape_MajorAxisLength', 15), ('AreaShape_MeanRadius', 18), ('AreaShape_Perimeter', 23), ('AreaShape_Solidity', 24)]
+    cols_to_use_scatter_cilia = [('AreaShape_MajorAxisLength', 15), ('AreaShape_MeanRadius', 18), ('AreaShape_Orientation', 22), ('AreaShape_Compactness', 9), ('AreaShape_Perimeter', 23)]
+    cols_cilia_len = [('AreaShape_Compactness', 9), ('AreaShape_Orientation', 22), ('AreaShape_Perimeter', 23), ('AreaShape_Solidity', 24)]
     image_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Image.csv", skipinitialspace=True)
 
     associate_df = pd.read_csv(
@@ -360,49 +397,63 @@ def main():
         "Num nuclei per im": num_nuc_per_im,
         "Nuclei with 2 cent/Nuclei with 1 cent": single_cent_to_two_cent,
         "Num cilia per im": num_cilia_per_im,
-        "Avg len of cilia/size of nuclei": len_cilia_to_size_nucleus,
-        "Num nuclei to num cilia": nuc_per_cilia,
+        "Num centriole per im": num_cent_per_im,
+        "Num centrioles/Num nuclei": nuc_per_cent,
+        "Num cilia/Num nuclei": nuc_per_cilia,
     }
     histogram_dispatch_dict = {
         **histogram_dispatch_dict,
         **{
             f"Avg {col} of cilia": partial(avg_blank_cilia, col_idx=idx)
-            for idx, col in enumerate(cols_to_use)
+            for col, idx in cols_to_use
         },
         **{
             f"Avg {col} of centriole": partial(avg_blank_centriole, col_idx=idx)
-            for idx, col in enumerate(cols_to_use)
+            for col, idx in cols_to_use_cent
         },
         **{
             f"Avg {col} of nuclei": partial(avg_blank_nucleus, col=col)
-            for col in cols_to_use
+            for col, _ in cols_to_use_cent
         },
     }
 
     valid_cilia_attrs = [
-        "AreaShape_Area",
-        "AreaShape_MajorAxisLength",
-        "AreaShape_EquivalentDiameter",
+        ('AreaShape_Area', 1),
+        ('AreaShape_MajorAxisLength', 15)
     ]
 
     scatter_dispatch_dict = {
         "Cilia area to length": cilia_area_to_len,
         "Proportion of nuclei with cilia to proportion of nuclei with centrioles": nuc_cilia_to_nuc_cent,
         "Number of cilia/avg len of cilia": avg_length_cilia,
-        "Nucleus area to centriole area": nuc_area_to_cent,
+        "Number of centrioles/number of cilia": num_cent_to_cilia,
+        "Number of nuclei/number of centrioles": num_nuc_to_cent,
+        "Number of nuclei/solidity": num_nuc_to_solidity
     }
     scatter_dispatch_dict = {
         **scatter_dispatch_dict,
         **{
             f"Nucleus area to cilia {attr}": partial(nuclei_to_cilia_scatter, attr=attr)
-            for attr in valid_cilia_attrs
+            for attr, _ in valid_cilia_attrs
         },
         **{
             f"Centriole area to cilia {attr}": partial(cent_area_to_cilia, attr=attr)
-            for attr in valid_cilia_attrs
+            for attr, _ in valid_cilia_attrs
         },
+        **{
+            f"Cilia number to cilia {attr}": partial(avg_num_cilia_to_measure, col_idx=idx, attr=attr)
+            for attr, idx in cols_to_use_scatter_cilia
+        },
+        **{
+            f"Cilia {attr} to cilia length": partial(measure_cilia_to_length, col_idx=idx, attr=attr)
+            for attr, idx in cols_cilia_len
+        }, 
+        **{
+            f"Nuclei number to cilia {attr}": partial(num_nuc_to_cilia_measure, col_idx=idx, attr=attr)
+            for attr, idx in valid_cilia_attrs
+        }
     }
-
+#num_nuc_to_cilia_measure
     cilia_per_thing_dispatch_dict = {}
 
     cilia_per_thing_dispatch_dict = {
@@ -411,15 +462,28 @@ def main():
             f"Number of cilia per 5 in {col}": partial(
                 how_many_cilia_per_size, col_idx=idx
             )
-            for idx, col in enumerate(cols_to_use)
+            for col, idx in cols_to_use
         },
+        **{
+            f"Number of nuclei per 5 in {col}": partial(
+                how_many_nuc_per_size, col_idx=idx
+            )
+            for col, idx in cols_to_use_cent
+        },
+         **{
+            f"Number of centriole per 5 in {col}": partial(
+                how_many_cent_per_size, col_idx=idx
+            )
+            for col, idx in cols_to_use_cent
+        },
+
     }
 
     # Make figures
     histogram_figure = make_figure(title="Histograms", x_axis_label="Image")
     scatter_figure = make_figure(title="Scattergrams")
     cilia_per_thing_figure = make_figure(
-        title="Cilia per measurement", y_axis_label="Amount of Cilia"
+        title="Organelle per measurement", y_axis_label="Number"
     )
 
     histogram = ColumnDataSource({"top": [], "left": [], "right": []})
@@ -459,8 +523,12 @@ def main():
             num_im=num_im,
             grouped_cilia=grouped_cilia,
             grouped_valid_cilia=grouped_valid_cilia,
+            grouped_cell=grouped_cell,
+            grouped_centriole=grouped_centriole,
+            grouped_valid_cent=grouped_valid_cent
+            
         )
-        cilia_per_thing.data = {  # TODO fix whatever's going wrong here ....
+        cilia_per_thing.data = {  
             "left": [i for i in list(range(0, 500))],
             "right": [i + 1 for i in list(range(0, 500))],
             "top": new_data,
@@ -482,6 +550,7 @@ def main():
             grouped_valid_cilia=grouped_valid_cilia,
             grouped_cell=grouped_cell,
             grouped_centriole=grouped_centriole,
+            grouped_valid_cent=grouped_valid_cent
         )
         scatter.data = {
             "x": new_x,
@@ -499,7 +568,7 @@ def main():
     )
 
     cilia_per_thing_dropdown = Dropdown(
-        label="Measurement to sort cilia by",
+        label="Measurement to sort organelles by",
         menu=[(key, key) for key in cilia_per_thing_dispatch_dict],
     )
 
