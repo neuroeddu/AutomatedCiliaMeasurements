@@ -6,8 +6,8 @@ from bokeh.layouts import column, row
 from functools import partial
 
 ################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/spreadsheets_im_output"
-OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/c2c"
+CSV_FOLDER = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_aws/converted"
+OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_aws/c2c_output"
 ################################# TO CHANGE #################################
 # Initialize figures
 def make_figure(title, x_axis_label="", y_axis_label=""):
@@ -91,6 +91,7 @@ def single_cent_to_two_cent(grouped_associates, num_im, **kwargs):
         associates_list = make_lists(num, grouped_associates)
         double = 0
         for row in associates_list:
+            print(row)
             if "," in row[2]:
                 double += 1
         ratios.append((len(associates_list) - double) / double)
@@ -117,7 +118,7 @@ def how_many_blank_per_size_helper(
         blank_li = make_lists(num, grouped_blank)
         blank_size = []
         for blank in blank_li:
-            if grouped_valid_blank and int(blank[0]) not in valid_blank:
+            if grouped_valid_blank and int(blank[1]) not in valid_blank:
                 continue
 
             cur_area = blank[col_idx]
@@ -171,14 +172,13 @@ def avg_blank_helper(grouped, valid, num_im, col_idx):
         valid_li = make_lists(num, valid, "0")
         valid_li = set(x[1] for x in valid_li)  # Column 1 contains cilia number
         measurements_li = make_lists(num, grouped)
-
         size = []
         for thing in measurements_li:
-            if int(thing[0]) not in valid_li:
+            if int(thing[1]) not in valid_li:
                 continue
             size.append(
-                thing[col_idx]
-            )  # TODO Check this but I am pretty sure this should NOT be col+1 because col is now 100% accurate
+                thing[col_idx+1]
+            )  # NOTE This has to be +1 becase the list of measurements has an additional index column 
         result.append(sum(size) / len(size))
     result = sorted(result)
     return result
@@ -187,9 +187,10 @@ def avg_blank_helper(grouped, valid, num_im, col_idx):
 # Calculate per-image averages of all columns for nuclei
 def avg_blank_nucleus(grouped_cell, col, **kwargs):
     mean_df = grouped_cell[
-        col + 1
-    ].mean()  # NOTE the +1 is because we assume that ImageNumber is taken out when calculating indices, but here it is kept in
-    return mean_df.values.tolist()
+        col
+    ].mean()
+    result = sorted(mean_df.values.tolist())
+    return result
 
 
 # Calculate nuclei area to cilia area / cilia len / cilia diff diam
@@ -241,7 +242,7 @@ def cilia_area_to_len(valid_cilia_df, cilia_df, **kwargs):
     ]
 
 
-# NOTE This assumes the cell-> centriole, centriole -> cilia
+# NOTE This assumes the cell-> centriole, cell -> cilia
 # Calculate ratio of number of cilia to number of centrioles
 def nuc_cilia_to_nuc_cent(grouped_associates, num_im, image_df, **kwargs):
     # cilia is not there if cilia ==-2, cent is not there if empty list
@@ -288,9 +289,10 @@ def avg_length_cilia(grouped_cilia, grouped_valid_cilia, num_im, **kwargs):
 
         cilia_size = []
         for cilia in cilia_li:
-            if int(cilia[0]) not in valid_cilia:
+            print(cilia)
+            if int(cilia[1]) not in valid_cilia:
                 continue
-            cilia_size.append(cilia[15])
+            cilia_size.append(cilia[16])
         avg_len_cilia.append(sum(cilia_size) / len(cilia_size))
     return num_cilia, avg_len_cilia, "Number of cilia", "Average length of cilia"
 
@@ -302,9 +304,9 @@ def cent_area_to_cilia(
     cilia_measures = []
     cent_areas = []
     measure_dict = {
-        "AreaShape_Area": 1,
-        "AreaShape_MajorAxisLength": 15,
-        "AreaShape_EquivalentDiameter": 11,
+        "AreaShape_Area": 2,
+        "AreaShape_MajorAxisLength": 16,
+        "AreaShape_EquivalentDiameter": 12,
     }
     for num in range(1, num_im + 1):
         associates_li = make_lists(num, grouped_associates)
@@ -318,14 +320,15 @@ def cent_area_to_cilia(
                 )  # this is 1 indexed in the output file so make it 0 indexed for ez access
                 cilia_measure = cell_li[cur_cilia][measure_dict[attr]]
                 cur_cent = row[2].strip("[]")
-                if not "," in cur_cent:  # we are at a singleton, just get the area
-                    cilia_measures.append(cilia_measure)
-                    cent_areas.append(cent_li[int(cur_cent) - 1][1])
-                else:
-                    cents = cur_cent.split(", ")
-                    for cent in cents:
+                if cur_cent:
+                    if not "," in cur_cent:  # we are at a singleton, just get the area
                         cilia_measures.append(cilia_measure)
-                        cent_areas.append(cent_li[int(cent) - 1][1])
+                        cent_areas.append(cent_li[int(cur_cent) - 1][1])
+                    else:
+                        cents = cur_cent.split(", ")
+                        for cent in cents:
+                            cilia_measures.append(cilia_measure)
+                            cent_areas.append(cent_li[int(cent) - 1][1])
 
     return cent_areas, cilia_measures, "Centriole area", f"Cilia {attr}"
 
@@ -354,10 +357,10 @@ def measure_cilia_to_length(
         measurements_li = make_lists(num, grouped_cilia)
 
         for thing in measurements_li:
-            if int(thing[0]) not in valid_li:
+            if int(thing[1]) not in valid_li:
                 continue
             measure.append(thing[col_idx])
-            length.append(thing[15])
+            length.append(thing[16])
 
     return [measure, length, "Cilia measure", "Length of cilia"]
 
@@ -468,15 +471,15 @@ def main():
         **histogram_dispatch_dict,
         **{
             f"Avg {col} of cilia": partial(avg_blank_cilia, col_idx=idx)
-            for col, idx in cols_to_use
+            for (col, idx) in cols_to_use
         },
         **{
             f"Avg {col} of centriole": partial(avg_blank_centriole, col_idx=idx)
-            for col, idx in cols_to_use_cent
+            for (col, idx) in cols_to_use_cent
         },
         **{
             f"Avg {col} of nuclei": partial(avg_blank_nucleus, col=col)
-            for col, _ in cols_to_use_cent
+            for (col, _) in cols_to_use_cent
         },
     }
 
@@ -494,29 +497,29 @@ def main():
         **scatter_dispatch_dict,
         **{
             f"Nucleus area to cilia {attr}": partial(nuclei_to_cilia_scatter, attr=attr)
-            for attr, _ in valid_cilia_attrs
+            for (attr, _) in valid_cilia_attrs
         },
         **{
             f"Centriole area to cilia {attr}": partial(cent_area_to_cilia, attr=attr)
-            for attr, _ in valid_cilia_attrs
+            for (attr, _) in valid_cilia_attrs
         },
         **{
             f"Cilia number to cilia {attr}": partial(
                 avg_num_cilia_to_measure, col_idx=idx, attr=attr
             )
-            for attr, idx in cols_to_use_scatter_cilia
+            for (attr, idx) in cols_to_use_scatter_cilia
         },
         **{
             f"Cilia {attr} to cilia length": partial(
                 measure_cilia_to_length, col_idx=idx, attr=attr
             )
-            for attr, idx in cols_cilia_len
+            for (attr, idx) in cols_cilia_len
         },
         **{
             f"Nuclei number to cilia {attr}": partial(
                 num_nuc_to_cilia_measure, col_idx=idx, attr=attr
             )
-            for attr, idx in valid_cilia_attrs
+            for (attr, idx) in valid_cilia_attrs
         },
     }
     # num_nuc_to_cilia_measure
@@ -528,19 +531,19 @@ def main():
             f"Number of cilia per 5 in {col}": partial(
                 how_many_cilia_per_size, col_idx=idx
             )
-            for col, idx in cols_to_use
+            for (col, idx) in cols_to_use
         },
         **{
             f"Number of nuclei per 5 in {col}": partial(
                 how_many_nuc_per_size, col_idx=idx
             )
-            for col, idx in cols_to_use_cent
+            for (col, idx) in cols_to_use_cent
         },
         **{
             f"Number of centriole per 5 in {col}": partial(
                 how_many_cent_per_size, col_idx=idx
             )
-            for col, idx in cols_to_use_cent
+            for (col, idx) in cols_to_use_cent
         },
     }
 
