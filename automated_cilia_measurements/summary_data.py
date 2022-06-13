@@ -177,8 +177,8 @@ def avg_blank_helper(grouped, valid, num_im, col_idx):
             if int(thing[1]) not in valid_li:
                 continue
             size.append(
-                thing[col_idx+1]
-            )  # NOTE This has to be +1 becase the list of measurements has an additional index column 
+                thing[col_idx + 1]
+            )  # NOTE This has to be +1 becase the list of measurements has an additional index column
         result.append(sum(size) / len(size))
     result = sorted(result)
     return result
@@ -186,9 +186,7 @@ def avg_blank_helper(grouped, valid, num_im, col_idx):
 
 # Calculate per-image averages of all columns for nuclei
 def avg_blank_nucleus(grouped_cell, col, **kwargs):
-    mean_df = grouped_cell[
-        col
-    ].mean()
+    mean_df = grouped_cell[col].mean()
     result = sorted(mean_df.values.tolist())
     return result
 
