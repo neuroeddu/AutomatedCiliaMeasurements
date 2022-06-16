@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "automated_cilia_measurements"
-version = "0.1.0"
+version = "1.0.0"
 description = "Pipeline to measure cilia, cells, and which cilia are close to which cells from microscopy images using CellProfiler and Python"
 authors = ["sneha <sneha.shinde350+0@gmail.com>"]
 
@@ -15,6 +15,7 @@ matplotlib = "^3.5.1"
 plotly = "5.7.0"
 umap-learn = "0.5.3"
 Kivy = "^2.1.0"
+pygame = "^2.1.2"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
