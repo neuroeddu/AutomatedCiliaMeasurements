@@ -2,12 +2,13 @@ from bokeh.models.sources import ColumnDataSource
 import pandas as pd
 from bokeh.plotting import figure, curdoc
 from bokeh.models import Dropdown
-from bokeh.layouts import column, row
+from bokeh.layouts import column
 from functools import partial
+import numpy as np
 
 ################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_aws/converted"
-OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_aws/c2c_output"
+CSV_FOLDER = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_bic/converted"
+OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_bic/c2c_output"
 ################################# TO CHANGE #################################
 # Initialize figures
 def make_figure(title, x_axis_label="", y_axis_label=""):
@@ -33,10 +34,9 @@ def nuc_per_cilia(grouped_valid_cilia, num_im, image_df, **kwargs):
     num_nuc = num_nuc_per_im(image_df)
     num_cilia = num_cilia_per_im(grouped_valid_cilia, num_im)
 
-    nuc_per_cilia = []
-    for im in range(num_im):
-        nuc_per_cilia.append(num_cilia[im] / num_nuc[im])
+    nuc_per_cilia = [(num_cilia[im] / num_nuc[im]) for im in range(num_im)]
     nuc_per_cilia = sorted(nuc_per_cilia)
+
     return nuc_per_cilia
 
 
@@ -101,13 +101,92 @@ def single_cent_to_two_cent(grouped_associates, num_im, **kwargs):
 
 
 def how_many_blank_per_size_helper(
-    grouped_blank, num_im, col_idx, grouped_valid_blank=None
+    grouped_blank, num_im, col_idx, organelle, grouped_valid_blank=None
 ):
+    num_bins = 500
+    step=0.5
+    if organelle==2:
+        if col_idx==1:
+            num_bins = 25
+            step=0.5
+        elif col_idx==9:
+            num_bins=5
+            step=0.05
+        elif col_idx==10:
+            num_bins=1.5
+            step=0.10
+        elif col_idx==11:
+            num_bins=5
+            step=0.25
+        elif col_idx==12:
+            num_bins=5
+        elif col_idx==13:
+            num_bins=1
+            step=0.01
+        elif col_idx==14:
+            pass
+        elif col_idx==15:
+            num_bins=10
+            step=0.2
+        elif col_idx==16:
+            num_bins=10
+            step=0.2
+        elif col_idx==17: 
+            num_bins=2
+            step=0.15
+        elif col_idx==18: 
+            num_bins=1
+            step=0.1
+        elif col_idx==20: 
+            num_bins=5
+            step=0.25
+        elif col_idx==21: 
+            num_bins=6
+            step=0.2
+        elif col_idx==22: 
+            num_bins=2
+            step=0.1
+        elif col_idx==23: 
+            num_bins=30
+            step=0.2
+        elif col_idx==24:
+            num_bins=1
+            step=0.01
+    if organelle==1:
+        if col_idx==1: 
+            num_bins=700
+            step=10
+        if col_idx==15:
+            num_bins=50
+        if col_idx==18: 
+            num_bins=5
+            step=0.1
+        if col_idx==23: 
+            num_bins=150
+            step=1
+        if col_idx==24:
+            num_bins=1
+            step=0.01
 
-    NUM_BINS = 500
-    result = [[] for bin in range(0, NUM_BINS)]
-    col_idx_to_range = {}
-    # ex list(range(50,-1,-5))
+    if organelle==3:
+        if col_idx==1:
+            num_bins=10
+            step=0.25
+        if col_idx==15: 
+            num_bins=7
+            step=0.1
+        if col_idx==18: 
+            num_bins=1
+            step=0.1
+        if col_idx==23: 
+            num_bins=20
+            step=0.2
+        if col_idx==24:
+            num_bins=1
+            step=0.01
+
+    result = [0 for _ in np.arange(0, num_bins, step)]
+
     for num in range(1, num_im + 1):
         if grouped_valid_blank:
             valid_blank = make_lists(num, grouped_valid_blank, "0")
@@ -116,42 +195,48 @@ def how_many_blank_per_size_helper(
             )  # Column 1 contains cilia number
 
         blank_li = make_lists(num, grouped_blank)
-        blank_size = []
+
         for blank in blank_li:
             if grouped_valid_blank and int(blank[1]) not in valid_blank:
                 continue
 
-            cur_area = blank[col_idx]
-            ranges = list(range(NUM_BINS, 0, -1))
+            cur_attr = blank[col_idx+1]
+            # NOTE This has to be +1 becase the list of measurements has an additional index column
+            ranges = list(np.arange(num_bins, 0, -step))
+            # [2, 1.9, 1.8, 1.7....]
             for c_ind, bucket_distance in enumerate(ranges):
-                if cur_area - bucket_distance >= 0:
-                    result[len(ranges) - 1 - c_ind].append(bucket_distance)
+                if cur_attr >= bucket_distance:
+                    result[len(ranges) - 1 - c_ind]+=1
                     break
-        new_result = []
-        for bucket in result:
-            new_result.append(len(bucket))
-    return new_result
+
+    return result, num_bins, step
 
 
 # Calculate number of cilia per size for each column
 def how_many_cilia_per_size(
     grouped_cilia, num_im, col_idx, grouped_valid_cilia, **kwargs
 ):
-    return how_many_blank_per_size_helper(
-        grouped_cilia, num_im, col_idx, grouped_valid_cilia
+    result, NUM_BINS, step = how_many_blank_per_size_helper(
+        grouped_cilia, num_im, col_idx, 2, grouped_valid_cilia
     )
+
+    return result, NUM_BINS, step, "Number of cilia"
 
 
 def how_many_nuc_per_size(grouped_cell, num_im, col_idx, **kwargs):
-    return how_many_blank_per_size_helper(grouped_cell, num_im, col_idx)
+    result, NUM_BINS, step = how_many_blank_per_size_helper(grouped_cell, num_im, col_idx, 1)
+
+    return result, NUM_BINS, step, "Number of nuclei"
 
 
 def how_many_cent_per_size(
     grouped_centriole, num_im, col_idx, grouped_valid_cent, **kwargs
 ):
-    return how_many_blank_per_size_helper(
-        grouped_centriole, num_im, col_idx, grouped_valid_cent
+    result, NUM_BINS, step = how_many_blank_per_size_helper(
+        grouped_centriole, num_im, col_idx, 3, grouped_valid_cent
     )
+
+    return result, NUM_BINS, step, "Number of centrioles"
 
 
 # Calculate per-image averages of all columns for cilia
@@ -332,7 +417,7 @@ def cent_area_to_cilia(
 
 
 def avg_num_cilia_to_measure(
-    grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs
+    grouped_cilia, grouped_valid_cilia, num_im, col_idx, attr, **kwargs
 ):
     num_cilia = num_cilia_per_im(grouped_valid_cilia, num_im)
     measure = avg_blank_helper(grouped_cilia, grouped_valid_cilia, num_im, col_idx)
@@ -340,12 +425,12 @@ def avg_num_cilia_to_measure(
         num_cilia,
         measure,
         "Number of cilia",
-        "Cilia measure",
+        f"Cilia {attr}",
     ]
 
 
 def measure_cilia_to_length(
-    grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs
+    grouped_cilia, grouped_valid_cilia, num_im, col_idx, attr, **kwargs
 ):
     measure = []
     length = []
@@ -360,7 +445,7 @@ def measure_cilia_to_length(
             measure.append(thing[col_idx])
             length.append(thing[16])
 
-    return [measure, length, "Cilia measure", "Length of cilia"]
+    return [measure, length, f"Cilia {attr}", "Length of cilia"]
 
 
 def num_cent_to_cilia(grouped_valid_cilia, grouped_valid_cent, num_im, **kwargs):
@@ -376,11 +461,11 @@ def num_nuc_to_cent(image_df, grouped_valid_cent, num_im, **kwargs):
 
 
 def num_nuc_to_cilia_measure(
-    image_df, grouped_cilia, grouped_valid_cilia, num_im, col_idx, **kwargs
+    image_df, grouped_cilia, grouped_valid_cilia, num_im, col_idx, attr, **kwargs
 ):
     nuc = num_nuc_per_im(image_df)
     measure = avg_blank_helper(grouped_cilia, grouped_valid_cilia, num_im, col_idx)
-    return [nuc, measure, "Number of nuclei", "Cilia measure"]
+    return [nuc, measure, "Number of nuclei", f"Cilia {attr}"]
 
 
 def num_nuc_to_solidity(grouped_cell, image_df, **kwargs):
@@ -388,6 +473,27 @@ def num_nuc_to_solidity(grouped_cell, image_df, **kwargs):
     solidity = mean_df.values.tolist()
     nuc = num_nuc_per_im(image_df)
     return [nuc, solidity, "Number of nuclei", "Nuclei solidity"]
+
+def check_units(col_idx):
+    to_multiply_x = {
+        11,
+        13,
+        15,
+        16,
+        17,
+        18,
+        20,
+        21,
+        23,
+        24}
+    to_multiply_2x = {1}
+    result='(default CellProfiler units)'
+    if col_idx in to_multiply_x:
+        result='(micrometers)'
+    elif col_idx in to_multiply_2x:
+        result='(micrometers squared)'
+    return result
+
 
 
 def main():
@@ -457,7 +563,7 @@ def main():
     grouped_valid_cent = valid_cent_df.groupby(["0"])
 
     # Make dispatch dictionaries for all graphs to easily convert between them
-    histogram_dispatch_dict = {
+    per_im_dispatch_dict = {
         "Num nuclei per im": num_nuc_per_im,
         "Nuclei with 2 cent/Nuclei with 1 cent": single_cent_to_two_cent,
         "Num cilia per im": num_cilia_per_im,
@@ -465,8 +571,8 @@ def main():
         "Num centrioles/Num nuclei": nuc_per_cent,
         "Num cilia/Num nuclei": nuc_per_cilia,
     }
-    histogram_dispatch_dict = {
-        **histogram_dispatch_dict,
+    per_im_dispatch_dict = {
+        **per_im_dispatch_dict,
         **{
             f"Avg {col} of cilia": partial(avg_blank_cilia, col_idx=idx)
             for (col, idx) in cols_to_use
@@ -520,25 +626,24 @@ def main():
             for (attr, idx) in valid_cilia_attrs
         },
     }
-    # num_nuc_to_cilia_measure
-    cilia_per_thing_dispatch_dict = {}
+    histogram_dispatch_dict = {}
 
-    cilia_per_thing_dispatch_dict = {
-        **cilia_per_thing_dispatch_dict,
+    histogram_dispatch_dict = {
+        **histogram_dispatch_dict,
         **{
-            f"Number of cilia per 5 in {col}": partial(
+            f"Cilia {col} {check_units(idx)}": partial(
                 how_many_cilia_per_size, col_idx=idx
             )
             for (col, idx) in cols_to_use
         },
         **{
-            f"Number of nuclei per 5 in {col}": partial(
+            f"Nuclei {col} {check_units(idx)}": partial(
                 how_many_nuc_per_size, col_idx=idx
             )
             for (col, idx) in cols_to_use_cent
         },
         **{
-            f"Number of centriole per 5 in {col}": partial(
+            f"Centriole {col} {check_units(idx)}": partial(
                 how_many_cent_per_size, col_idx=idx
             )
             for (col, idx) in cols_to_use_cent
@@ -546,27 +651,27 @@ def main():
     }
 
     # Make figures
-    histogram_figure = make_figure(title="Histograms", x_axis_label=" ")
-    scatter_figure = make_figure(title="Scattergrams")
-    cilia_per_thing_figure = make_figure(
-        title="Organelle per measurement", y_axis_label="Number"
+    per_im_figure = make_figure(title="Measurements per image", x_axis_label="Images")
+    scatter_figure = make_figure(title="Scatterplots")
+    histogram_figure = make_figure(
+        title="Histograms"
     )
 
-    histogram = ColumnDataSource({"top": [], "left": [], "right": []})
+    per_im = ColumnDataSource({"top": [], "left": [], "right": []})
     scatter = ColumnDataSource({"x": [], "y": []})
-    cilia_per_thing = ColumnDataSource({"top": [], "left": [], "right": []})
+    histogram = ColumnDataSource({"top": [], "left": [], "right": []})
 
+    per_im_figure.quad(
+        source=per_im, top="top", left="left", right="right", bottom=0
+    )
+    scatter_figure.scatter(source=scatter, x="x", y="y")
     histogram_figure.quad(
         source=histogram, top="top", left="left", right="right", bottom=0
     )
-    scatter_figure.scatter(source=scatter, x="x", y="y")
-    cilia_per_thing_figure.quad(
-        source=cilia_per_thing, top="top", left="left", right="right", bottom=0
-    )
 
     # Make graphs interactive
-    def histogram_selection_callback(event):
-        new_data = histogram_dispatch_dict[event.item](
+    def per_im_selection_callback(event):
+        new_data = per_im_dispatch_dict[event.item](
             num_im=num_im,
             image_df=image_df,
             grouped_associates=grouped_associates,
@@ -576,30 +681,32 @@ def main():
             grouped_valid_cilia=grouped_valid_cilia,
             grouped_valid_cent=grouped_valid_cent,
         )
-        histogram.data = {
+        per_im.data = {
             "left": [i for i in range(len(new_data))],
             "right": [i + 1 for i in range(len(new_data))],
             "top": new_data,
         }
 
-        histogram_figure.yaxis.axis_label = event.item
+        per_im_figure.yaxis.axis_label = event.item
+        per_im_figure.xaxis.major_label_text_font_size = '0pt'
 
-    def cilia_per_thing_selection_callback(event):
-        new_data = cilia_per_thing_dispatch_dict[event.item](
+    def histogram_selection_callback(event):
+        new_data, num_bins, step, y_label = histogram_dispatch_dict[event.item](
             num_im=num_im,
             grouped_cilia=grouped_cilia,
             grouped_valid_cilia=grouped_valid_cilia,
             grouped_cell=grouped_cell,
             grouped_centriole=grouped_centriole,
-            grouped_valid_cent=grouped_valid_cent,
+            grouped_valid_cent=grouped_valid_cent
         )
-        cilia_per_thing.data = {
-            "left": [i for i in list(range(0, 500))],
-            "right": [i + 1 for i in list(range(0, 500))],
+        histogram.data = {
+            "left": [i for i in list(np.arange(0, num_bins, step))],
+            "right": [i + step for i in list(np.arange(0, num_bins, step))],
             "top": new_data,
         }
 
-        cilia_per_thing_figure.xaxis.axis_label = event.item
+        histogram_figure.xaxis.axis_label = event.item
+        histogram_figure.yaxis.axis_label = y_label
 
     def scatter_selection_callback(event):
         new_x, new_y, x_label, y_label = scatter_dispatch_dict[event.item](
@@ -625,28 +732,29 @@ def main():
         scatter_figure.xaxis.axis_label = x_label
 
     # Add dropdown to change graphs
-    histogram_dropdown = Dropdown(
-        label="Summary Statistic", menu=[(key, key) for key in histogram_dispatch_dict]
+    per_im_dropdown = Dropdown(
+        label="Measurements per image", menu=[(key, key) for key in per_im_dispatch_dict]
     )
     scatter_dropdown = Dropdown(
-        label="Summary Scatterplot", menu=[(key, key) for key in scatter_dispatch_dict]
+        label="Summary Scatterplots", menu=[(key, key) for key in scatter_dispatch_dict]
     )
 
-    cilia_per_thing_dropdown = Dropdown(
-        label="Measurement to sort organelles by",
-        menu=[(key, key) for key in cilia_per_thing_dispatch_dict],
+    histogram_dropdown = Dropdown(
+        label="Histograms",
+        menu=[(key, key) for key in histogram_dispatch_dict],
     )
 
     # Integrate dropdown and put together layout
-    histogram_dropdown.on_click(histogram_selection_callback)
+    per_im_dropdown.on_click(per_im_selection_callback)
     scatter_dropdown.on_click(scatter_selection_callback)
-    cilia_per_thing_dropdown.on_click(cilia_per_thing_selection_callback)
+    histogram_dropdown.on_click(histogram_selection_callback)
     layout = column(
         histogram_dropdown,
+        histogram_figure,
         scatter_dropdown,
-        row(histogram_figure, scatter_figure),
-        cilia_per_thing_dropdown,
-        cilia_per_thing_figure,
+        scatter_figure,
+        per_im_dropdown,
+        per_im_figure
     )
     curdoc().add_root(layout)
 
