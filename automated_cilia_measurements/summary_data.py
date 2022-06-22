@@ -104,86 +104,86 @@ def how_many_blank_per_size_helper(
     grouped_blank, num_im, col_idx, organelle, grouped_valid_blank=None
 ):
     num_bins = 500
-    step=0.5
-    if organelle==2:
-        if col_idx==1:
+    step = 0.5
+    if organelle == 2:
+        if col_idx == 1:
             num_bins = 25
-            step=0.5
-        elif col_idx==9:
-            num_bins=5
-            step=0.05
-        elif col_idx==10:
-            num_bins=1.5
-            step=0.10
-        elif col_idx==11:
-            num_bins=5
-            step=0.25
-        elif col_idx==12:
-            num_bins=5
-        elif col_idx==13:
-            num_bins=1
-            step=0.01
-        elif col_idx==14:
+            step = 0.5
+        elif col_idx == 9:
+            num_bins = 5
+            step = 0.05
+        elif col_idx == 10:
+            num_bins = 1.5
+            step = 0.10
+        elif col_idx == 11:
+            num_bins = 5
+            step = 0.25
+        elif col_idx == 12:
+            num_bins = 5
+        elif col_idx == 13:
+            num_bins = 1
+            step = 0.01
+        elif col_idx == 14:
             pass
-        elif col_idx==15:
-            num_bins=10
-            step=0.2
-        elif col_idx==16:
-            num_bins=10
-            step=0.2
-        elif col_idx==17: 
-            num_bins=2
-            step=0.15
-        elif col_idx==18: 
-            num_bins=1
-            step=0.1
-        elif col_idx==20: 
-            num_bins=5
-            step=0.25
-        elif col_idx==21: 
-            num_bins=6
-            step=0.2
-        elif col_idx==22: 
-            num_bins=2
-            step=0.1
-        elif col_idx==23: 
-            num_bins=30
-            step=0.2
-        elif col_idx==24:
-            num_bins=1
-            step=0.01
-    if organelle==1:
-        if col_idx==1: 
-            num_bins=700
-            step=10
-        if col_idx==15:
-            num_bins=50
-        if col_idx==18: 
-            num_bins=5
-            step=0.1
-        if col_idx==23: 
-            num_bins=150
-            step=1
-        if col_idx==24:
-            num_bins=1
-            step=0.01
+        elif col_idx == 15:
+            num_bins = 10
+            step = 0.2
+        elif col_idx == 16:
+            num_bins = 10
+            step = 0.2
+        elif col_idx == 17:
+            num_bins = 2
+            step = 0.15
+        elif col_idx == 18:
+            num_bins = 1
+            step = 0.1
+        elif col_idx == 20:
+            num_bins = 5
+            step = 0.25
+        elif col_idx == 21:
+            num_bins = 6
+            step = 0.2
+        elif col_idx == 22:
+            num_bins = 2
+            step = 0.1
+        elif col_idx == 23:
+            num_bins = 30
+            step = 0.2
+        elif col_idx == 24:
+            num_bins = 1
+            step = 0.01
+    if organelle == 1:
+        if col_idx == 1:
+            num_bins = 700
+            step = 10
+        if col_idx == 15:
+            num_bins = 50
+        if col_idx == 18:
+            num_bins = 5
+            step = 0.1
+        if col_idx == 23:
+            num_bins = 150
+            step = 1
+        if col_idx == 24:
+            num_bins = 1
+            step = 0.01
 
-    if organelle==3:
-        if col_idx==1:
-            num_bins=10
-            step=0.25
-        if col_idx==15: 
-            num_bins=7
-            step=0.1
-        if col_idx==18: 
-            num_bins=1
-            step=0.1
-        if col_idx==23: 
-            num_bins=20
-            step=0.2
-        if col_idx==24:
-            num_bins=1
-            step=0.01
+    if organelle == 3:
+        if col_idx == 1:
+            num_bins = 10
+            step = 0.25
+        if col_idx == 15:
+            num_bins = 7
+            step = 0.1
+        if col_idx == 18:
+            num_bins = 1
+            step = 0.1
+        if col_idx == 23:
+            num_bins = 20
+            step = 0.2
+        if col_idx == 24:
+            num_bins = 1
+            step = 0.01
 
     result = [0 for _ in np.arange(0, num_bins, step)]
 
@@ -200,13 +200,13 @@ def how_many_blank_per_size_helper(
             if grouped_valid_blank and int(blank[1]) not in valid_blank:
                 continue
 
-            cur_attr = blank[col_idx+1]
+            cur_attr = blank[col_idx + 1]
             # NOTE This has to be +1 becase the list of measurements has an additional index column
             ranges = list(np.arange(num_bins, 0, -step))
             # [2, 1.9, 1.8, 1.7....]
             for c_ind, bucket_distance in enumerate(ranges):
                 if cur_attr >= bucket_distance:
-                    result[len(ranges) - 1 - c_ind]+=1
+                    result[len(ranges) - 1 - c_ind] += 1
                     break
 
     return result, num_bins, step
@@ -224,7 +224,9 @@ def how_many_cilia_per_size(
 
 
 def how_many_nuc_per_size(grouped_cell, num_im, col_idx, **kwargs):
-    result, NUM_BINS, step = how_many_blank_per_size_helper(grouped_cell, num_im, col_idx, 1)
+    result, NUM_BINS, step = how_many_blank_per_size_helper(
+        grouped_cell, num_im, col_idx, 1
+    )
 
     return result, NUM_BINS, step, "Number of nuclei"
 
@@ -474,26 +476,16 @@ def num_nuc_to_solidity(grouped_cell, image_df, **kwargs):
     nuc = num_nuc_per_im(image_df)
     return [nuc, solidity, "Number of nuclei", "Nuclei solidity"]
 
-def check_units(col_idx):
-    to_multiply_x = {
-        11,
-        13,
-        15,
-        16,
-        17,
-        18,
-        20,
-        21,
-        23,
-        24}
-    to_multiply_2x = {1}
-    result='(default CellProfiler units)'
-    if col_idx in to_multiply_x:
-        result='(micrometers)'
-    elif col_idx in to_multiply_2x:
-        result='(micrometers squared)'
-    return result
 
+def check_units(col_idx):
+    to_multiply_x = {11, 13, 15, 16, 17, 18, 20, 21, 23, 24}
+    to_multiply_2x = {1}
+    result = "(default CellProfiler units)"
+    if col_idx in to_multiply_x:
+        result = "(micrometers)"
+    elif col_idx in to_multiply_2x:
+        result = "(micrometers squared)"
+    return result
 
 
 def main():
@@ -653,17 +645,13 @@ def main():
     # Make figures
     per_im_figure = make_figure(title="Measurements per image", x_axis_label="Images")
     scatter_figure = make_figure(title="Scatterplots")
-    histogram_figure = make_figure(
-        title="Histograms"
-    )
+    histogram_figure = make_figure(title="Histograms")
 
     per_im = ColumnDataSource({"top": [], "left": [], "right": []})
     scatter = ColumnDataSource({"x": [], "y": []})
     histogram = ColumnDataSource({"top": [], "left": [], "right": []})
 
-    per_im_figure.quad(
-        source=per_im, top="top", left="left", right="right", bottom=0
-    )
+    per_im_figure.quad(source=per_im, top="top", left="left", right="right", bottom=0)
     scatter_figure.scatter(source=scatter, x="x", y="y")
     histogram_figure.quad(
         source=histogram, top="top", left="left", right="right", bottom=0
@@ -688,7 +676,7 @@ def main():
         }
 
         per_im_figure.yaxis.axis_label = event.item
-        per_im_figure.xaxis.major_label_text_font_size = '0pt'
+        per_im_figure.xaxis.major_label_text_font_size = "0pt"
 
     def histogram_selection_callback(event):
         new_data, num_bins, step, y_label = histogram_dispatch_dict[event.item](
@@ -697,7 +685,7 @@ def main():
             grouped_valid_cilia=grouped_valid_cilia,
             grouped_cell=grouped_cell,
             grouped_centriole=grouped_centriole,
-            grouped_valid_cent=grouped_valid_cent
+            grouped_valid_cent=grouped_valid_cent,
         )
         histogram.data = {
             "left": [i for i in list(np.arange(0, num_bins, step))],
@@ -733,7 +721,8 @@ def main():
 
     # Add dropdown to change graphs
     per_im_dropdown = Dropdown(
-        label="Measurements per image", menu=[(key, key) for key in per_im_dispatch_dict]
+        label="Measurements per image",
+        menu=[(key, key) for key in per_im_dispatch_dict],
     )
     scatter_dropdown = Dropdown(
         label="Summary Scatterplots", menu=[(key, key) for key in scatter_dispatch_dict]
@@ -754,7 +743,7 @@ def main():
         scatter_dropdown,
         scatter_figure,
         per_im_dropdown,
-        per_im_figure
+        per_im_figure,
     )
     curdoc().add_root(layout)
 
