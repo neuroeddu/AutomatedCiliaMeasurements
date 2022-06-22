@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as shc
 import umap.umap_ as umap
 
+
 def parse_args():
     # parse input arguments
     parser = argparse.ArgumentParser()
@@ -288,9 +289,7 @@ def pca_features(full_df, pca_7d, output):
         max_value = max(component)
 
     with open(join(output, f"pca_features.txt"), "w") as f:
-        f.write(
-            f"the important features for each principal component are: "
-        )
+        f.write(f"the important features for each principal component are: ")
         f.write(columns_mapping[component.index(max_value)])
 
 
@@ -322,9 +321,7 @@ def xmeans(full_df, clf, pca_2d, output):
             cluster_df = full_df[full_df["Cluster"] == cluster]
             mean_df = cluster_df.mean()
             mean_df = mean_df.to_string()
-            f.write(
-                f"The mean values for features in cluster {cluster} are\n"
-            )
+            f.write(f"The mean values for features in cluster {cluster} are\n")
             f.write(mean_df)
             f.write("\n*****************************************\n")
 
