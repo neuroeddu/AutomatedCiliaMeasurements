@@ -12,6 +12,7 @@ from automated_cilia_measurements.data_table import main as data_table
 from automated_cilia_measurements.label_c2c import main as label_c2c
 from automated_cilia_measurements.label_valid_cilia import main as organelle_labeler
 from automated_cilia_measurements.check_accuracy import main as check_accuracy
+from automated_cilia_measurements.cluster_as_one import main as cluster_as_one
 
 
 def parse_args():
@@ -43,6 +44,14 @@ def parse_args():
         "--factor",
         help="conversion factor. enter number if you want to convert pixels to micrometer",
         required=False,
+    )
+
+    parser.add_argument(
+        "-cu",
+        "--cluster_as_one",
+        help="cluster with all images combined rather than per-image. NOTE: this may crash if not using a computer with sufficient processing capability",
+        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -210,16 +219,26 @@ def main(**args):
 
         if not os.path.exists(cluster_output):
             os.mkdir(cluster_output)
-
-        clustering(
-            measurements=csvs_in,
-            c2c=os.path.join(c2c_output_path, "c2coutput.csv"),
-            xmeans=args.get("xmeans"),
-            pca_features=args.get("pca_features"),
-            heirarchical=args.get("heirarchical"),
-            umap=args.get("umap"),
-            output=cluster_output,
-        )
+        if not args.get("cluster_as_one"):
+            clustering(
+                measurements=csvs_in,
+                c2c=os.path.join(c2c_output_path, "c2coutput.csv"),
+                xmeans=args.get("xmeans"),
+                pca_features=args.get("pca_features"),
+                heirarchical=args.get("heirarchical"),
+                umap=args.get("umap"),
+                output=cluster_output,
+            )
+        else:
+            cluster_as_one(
+                measurements=csvs_in,
+                c2c=os.path.join(c2c_output_path, "c2coutput.csv"),
+                xmeans=args.get("xmeans"),
+                pca_features=args.get("pca_features"),
+                heirarchical=args.get("heirarchical"),
+                umap=args.get("umap"),
+                output=cluster_output,
+            )
 
     if args.get("cellprofiler_labeling"):
         cprof_vis_output = os.path.join(dir_out, "cprof_vis_output")
