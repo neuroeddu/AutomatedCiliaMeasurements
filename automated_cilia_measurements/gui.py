@@ -1,4 +1,3 @@
-import kivy
 from kivy.app import App
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
@@ -114,7 +113,8 @@ class MyGrid(GridLayout):
         self.append_widget("Output folder:", "output", TextInput(multiline=False))
 
         parent_name = "microm"
-        cb = CheckBox()
+        color_check=[255, 255, 255, 2]
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
@@ -129,19 +129,19 @@ class MyGrid(GridLayout):
         )
         self.append_widget("Convert pixels to micrometers?", parent_name, cb)
 
-        self.append_widget("Make dendograms?", "heirarchical", CheckBox())
-        self.append_widget("Make XMeans?", "xmeans", CheckBox())
-        self.append_widget("Perform PCA", "pca_features", CheckBox())
-        self.append_widget("Perform UMAP", "umap", CheckBox())
+        self.append_widget("Make dendograms?", "heirarchical", CheckBox(color=color_check))
+        self.append_widget("Make XMeans?", "xmeans", CheckBox(color=color_check))
+        self.append_widget("Perform PCA", "pca_features", CheckBox(color=color_check))
+        self.append_widget("Perform UMAP", "umap", CheckBox(color=color_check))
 
         parent_name = "cellprofiler_labeling"
-        cb = CheckBox()
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
                     (
-                        "Number of images to label for cellprofiler image labeling, if specific number of im wanted:",
+                        "Number of images to label, if specific:",
                         "num_cellprofiler_images",
                         TextInput(multiline=False),
                     ),
@@ -155,16 +155,16 @@ class MyGrid(GridLayout):
         )
         self.append_widget("Perform labeling of CellProfiler images?", parent_name, cb)
 
-        self.append_widget("Make a data table?", "data_table", CheckBox())
+        self.append_widget("Make a data table?", "data_table", CheckBox(color=color_check))
 
         parent_name = "label_c2c"
-        cb = CheckBox()
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
                     (
-                        "Number of images to label for c2c image labeling, if specific number of im wanted:",
+                        "Number of images to label, if specific:",
                         "num_c2c_images",
                         TextInput(multiline=False),
                     ),
@@ -174,13 +174,13 @@ class MyGrid(GridLayout):
         self.append_widget("Visualize c2c output?", parent_name, cb)
 
         parent_name = "nuclei_label"
-        cb = CheckBox()
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
                     (
-                        "Number of images to label for nuclei image labeling, if specific number of im wanted:",
+                        "Number of images to label, if specific:",
                         "num_nuclei_images",
                         TextInput(multiline=False),
                     ),
@@ -190,13 +190,13 @@ class MyGrid(GridLayout):
         self.append_widget("Visualize nuclei on images?", parent_name, cb)
 
         parent_name = "cilia_label"
-        cb = CheckBox()
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
                     (
-                        "Number of images to label for cilia image labeling, if specific number of im wanted:",
+                        "Number of images to label, if specific:",
                         "num_cilia_images",
                         TextInput(multiline=False),
                     ),
@@ -206,13 +206,13 @@ class MyGrid(GridLayout):
         self.append_widget("Visualize valid cilia on images?", parent_name, cb)
 
         parent_name = "cent_label"
-        cb = CheckBox()
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,
                 [
                     (
-                        "Number of images to label for centriole image labeling, if specific number of im wanted:",
+                        "Number of images to label, if specific:",
                         "num_cent_images",
                         TextInput(multiline=False),
                     ),
@@ -222,7 +222,7 @@ class MyGrid(GridLayout):
         self.append_widget("Visualize valid centriole on images?", parent_name, cb)
 
         parent_name = "accuracy_check"
-        cb = CheckBox()
+        cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
                 parent_name,

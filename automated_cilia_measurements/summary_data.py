@@ -7,8 +7,8 @@ from functools import partial
 import numpy as np
 
 ################################# TO CHANGE #################################
-CSV_FOLDER = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_bic/converted"
-OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/send_to_bic/c2c_output"
+CSV_FOLDER = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/python_output/microm_converted"
+OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/python_output/c2c_output"
 ################################# TO CHANGE #################################
 # Initialize figures
 def make_figure(title, x_axis_label="", y_axis_label=""):
@@ -112,19 +112,19 @@ def how_many_blank_per_size_helper(
         elif col_idx == 9:
             num_bins = 5
             step = 0.05
-        elif col_idx == 10:
+        elif col_idx == 10: 
             num_bins = 1.5
-            step = 0.10
+            step = 0.01
         elif col_idx == 11:
             num_bins = 5
-            step = 0.25
+            step = 0.10
         elif col_idx == 12:
             num_bins = 5
         elif col_idx == 13:
             num_bins = 1
             step = 0.01
-        elif col_idx == 14:
-            pass
+        elif col_idx == 14: 
+            num_bins = 50
         elif col_idx == 15:
             num_bins = 10
             step = 0.2
@@ -133,19 +133,19 @@ def how_many_blank_per_size_helper(
             step = 0.2
         elif col_idx == 17:
             num_bins = 2
-            step = 0.15
-        elif col_idx == 18:
-            num_bins = 1
             step = 0.1
+        elif col_idx == 18: 
+            num_bins = 1
+            step = 0.001
         elif col_idx == 20:
-            num_bins = 5
-            step = 0.25
+            num_bins = 3
+            step = 0.05
         elif col_idx == 21:
             num_bins = 6
-            step = 0.2
-        elif col_idx == 22:
-            num_bins = 2
             step = 0.1
+        elif col_idx == 22: 
+            num_bins = 1.75
+            step = 0.01
         elif col_idx == 23:
             num_bins = 30
             step = 0.2
@@ -169,15 +169,15 @@ def how_many_blank_per_size_helper(
             step = 0.01
 
     if organelle == 3:
-        if col_idx == 1:
+        if col_idx == 1: 
             num_bins = 10
-            step = 0.25
+            step = 0.1
         if col_idx == 15:
             num_bins = 7
             step = 0.1
         if col_idx == 18:
             num_bins = 1
-            step = 0.1
+            step = 0.01
         if col_idx == 23:
             num_bins = 20
             step = 0.2
@@ -478,7 +478,7 @@ def num_nuc_to_solidity(grouped_cell, image_df, **kwargs):
 
 
 def check_units(col_idx):
-    to_multiply_x = {11, 13, 15, 16, 17, 18, 20, 21, 23, 24}
+    to_multiply_x = {11, 15, 16, 17, 18, 20, 21, 23}
     to_multiply_2x = {1}
     result = "(default CellProfiler units)"
     if col_idx in to_multiply_x:

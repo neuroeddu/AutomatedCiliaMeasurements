@@ -26,7 +26,6 @@ def convert_to_microm(
 
     to_multiply_x = [
         "AreaShape_EquivalentDiameter",
-        "AreaShape_Extent",
         "AreaShape_MajorAxisLength",
         "AreaShape_MaxFeretDiameter",
         "AreaShape_MaximumRadius",
@@ -34,8 +33,7 @@ def convert_to_microm(
         "AreaShape_MedianRadius",
         "AreaShape_MinFeretDiameter",
         "AreaShape_MinorAxisLength",
-        "AreaShape_Perimeter",
-        "AreaShape_Solidity",
+        "AreaShape_Perimeter"
     ]
 
     to_multiply_2x = ["AreaShape_Area", "AreaShape_BoundingBoxArea"]
