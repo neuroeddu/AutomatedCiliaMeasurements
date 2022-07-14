@@ -1,10 +1,14 @@
+import os
 from kivy.app import App
+from kivy.properties import BooleanProperty
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.button import Button
-
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.popup import Popup
 from automated_cilia_measurements.launcher import main as run_scripts
 
 # Global instance of the application, used to stop the gui programmatically
@@ -66,9 +70,9 @@ class MyGrid(GridLayout):
     def submit_callback(self, _):
         instance.stop()
         run_scripts(
-            output=self["output"].text,
-            input_csvs=self["input_csvs"].text,
-            input_images=self["input_images"].text,
+            output=self["output"],
+            input_csvs=self["input_csvs"],
+            input_images=self["input_images"],
             factor=self["factor"] and self["factor"].text,
             xmeans=self["xmeans"].active,
             pca_features=self["pca_features"].active,
@@ -90,8 +94,29 @@ class MyGrid(GridLayout):
             cent_label=self["cent_label"].active,
             num_cent_images=self["num_cent_images"] and self["num_cent_images"].text,
             true_results_for_accuracy_checker=self["true_results_for_accuracy_checker"]
-            and self["true_results_for_accuracy_checker"].text,
+            and self["true_results_for_accuracy_checker"],
         )
+
+    def file_chooser_widget(self, widget_name):
+        box = BoxLayout()
+
+        file_chooser = FileChooserListView(path=os.getcwd(), dirselect=True)
+        
+        box.add_widget(file_chooser)
+
+        popup = Popup(title='Double click to choose desired file', content=box)
+        if not hasattr(self, 'popup_refs'):
+            self.popup_refs=[]
+        self.popup_refs.append(popup)
+        file_chooser_button = Button(text='Choose file', size_hint_y=None, height=50)
+        file_chooser_button.bind(on_press=popup.open)
+        def file_chooser_handler(*args):
+            self[widget_name] = file_chooser.selection[0]
+            for popup in self.popup_refs:
+                popup.dismiss()
+                
+        file_chooser.bind(selection=file_chooser_handler)
+        return file_chooser_button
 
     def __init__(self, **kwargs):
         super(MyGrid, self).__init__(**kwargs)
@@ -103,14 +128,15 @@ class MyGrid(GridLayout):
         self.cur_widgets = []
 
         self.append_widget(
-            "Input CSVs (from CellProfiler):", "input_csvs", TextInput(multiline=False)
+            "Input CSVs (from CellProfiler):", "input_csvs", self.file_chooser_widget('input_csvs')
         )
+
         self.append_widget(
             "Input images (from CellProfiler):",
             "input_images",
-            TextInput(multiline=False),
+            self.file_chooser_widget("input_images"),
         )
-        self.append_widget("Output folder:", "output", TextInput(multiline=False))
+        self.append_widget("Output folder:", "output", self.file_chooser_widget("output"))
 
         parent_name = "microm"
         color_check = [255, 255, 255, 2]
@@ -234,7 +260,7 @@ class MyGrid(GridLayout):
                     (
                         "True results of cilia path, if accuracy checker wanted:",
                         "true_results_for_accuracy_checker",
-                        TextInput(multiline=False),
+                        self.file_chooser_widget("true_results_for_accuracy_checker"),
                     ),
                 ],
             )
@@ -246,7 +272,7 @@ class MyGrid(GridLayout):
         self.submit = Button(text="Submit", size_hint_y=None, height=50)
         self.submit.bind(on_press=self.submit_callback)
         self.add_widget(self.submit)
-
+        
 
 class Gui(App):
     def build(self):
