@@ -43,7 +43,7 @@ def parse_args():
         "-f",
         "--factor",
         help="conversion factor. enter number if you want to convert pixels to micrometer",
-        required=False
+        required=False,
     )
 
     parser.add_argument(

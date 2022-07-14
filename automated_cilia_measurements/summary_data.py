@@ -112,7 +112,7 @@ def how_many_blank_per_size_helper(
         elif col_idx == 9:
             num_bins = 5
             step = 0.05
-        elif col_idx == 10: 
+        elif col_idx == 10:
             num_bins = 1.5
             step = 0.01
         elif col_idx == 11:
@@ -123,7 +123,7 @@ def how_many_blank_per_size_helper(
         elif col_idx == 13:
             num_bins = 1
             step = 0.01
-        elif col_idx == 14: 
+        elif col_idx == 14:
             num_bins = 50
         elif col_idx == 15:
             num_bins = 10
@@ -134,7 +134,7 @@ def how_many_blank_per_size_helper(
         elif col_idx == 17:
             num_bins = 2
             step = 0.1
-        elif col_idx == 18: 
+        elif col_idx == 18:
             num_bins = 1
             step = 0.001
         elif col_idx == 20:
@@ -143,7 +143,7 @@ def how_many_blank_per_size_helper(
         elif col_idx == 21:
             num_bins = 6
             step = 0.1
-        elif col_idx == 22: 
+        elif col_idx == 22:
             num_bins = 1.75
             step = 0.01
         elif col_idx == 23:
@@ -169,7 +169,7 @@ def how_many_blank_per_size_helper(
             step = 0.01
 
     if organelle == 3:
-        if col_idx == 1: 
+        if col_idx == 1:
             num_bins = 10
             step = 0.1
         if col_idx == 15:

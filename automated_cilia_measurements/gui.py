@@ -113,7 +113,7 @@ class MyGrid(GridLayout):
         self.append_widget("Output folder:", "output", TextInput(multiline=False))
 
         parent_name = "microm"
-        color_check=[255, 255, 255, 2]
+        color_check = [255, 255, 255, 2]
         cb = CheckBox(color=color_check)
         cb.bind(
             active=self.create_dynamic_checkbox_handler(
@@ -129,7 +129,9 @@ class MyGrid(GridLayout):
         )
         self.append_widget("Convert pixels to micrometers?", parent_name, cb)
 
-        self.append_widget("Make dendograms?", "heirarchical", CheckBox(color=color_check))
+        self.append_widget(
+            "Make dendograms?", "heirarchical", CheckBox(color=color_check)
+        )
         self.append_widget("Make XMeans?", "xmeans", CheckBox(color=color_check))
         self.append_widget("Perform PCA", "pca_features", CheckBox(color=color_check))
         self.append_widget("Perform UMAP", "umap", CheckBox(color=color_check))
@@ -155,7 +157,9 @@ class MyGrid(GridLayout):
         )
         self.append_widget("Perform labeling of CellProfiler images?", parent_name, cb)
 
-        self.append_widget("Make a data table?", "data_table", CheckBox(color=color_check))
+        self.append_widget(
+            "Make a data table?", "data_table", CheckBox(color=color_check)
+        )
 
         parent_name = "label_c2c"
         cb = CheckBox(color=color_check)
