@@ -106,7 +106,7 @@ def how_many_blank_per_size_helper(
 ):
     num_bins = 500
     step = 0.5
-    start=0
+    start = 0
     if organelle == 2:
         if col_idx == 1:
             num_bins = 25
@@ -140,10 +140,10 @@ def how_many_blank_per_size_helper(
         elif col_idx == 21:
             num_bins = 8
             step = 0.1
-        elif col_idx == 22: 
+        elif col_idx == 22:
             num_bins = 90
             step = 10
-            start=-90
+            start = -90
         elif col_idx == 23:
             num_bins = 35
             step = 0.2
@@ -183,7 +183,7 @@ def how_many_blank_per_size_helper(
         if col_idx == 24:
             num_bins = 1
             step = 0.01
-   
+
     result = [0 for _ in np.arange(start, num_bins, step)]
 
     for num in range(1, num_im + 1):
@@ -198,7 +198,7 @@ def how_many_blank_per_size_helper(
         for blank in blank_li:
             if grouped_valid_blank and int(blank[1]) not in valid_blank:
                 continue
-            
+
             cur_attr = blank[col_idx + 1]
 
             ranges = list(np.arange(num_bins, start, -step))
@@ -539,7 +539,7 @@ def main():
         OUTPUT_CSV_DIR_PATH + "/new_cent.csv", skipinitialspace=True
     )
     grouped_valid_cent = valid_cent_df.groupby(["0"])
-    
+
     names_cilia = {
         "AreaShape_Area": "Cilia Area (um2)",
         "AreaShape_Compactness": "Cilia Compactness (arbitrary units)",
@@ -549,27 +549,27 @@ def main():
         "AreaShape_MajorAxisLength": "Cilia Length (major axis) (um)",
         "AreaShape_MaxFeretDiameter": "Cilia Length (max feret) (um)",
         "AreaShape_MaximumRadius": "Cilia Max Radius",
-        "AreaShape_MeanRadius":  "Cilia Mean Radius",
-        "AreaShape_MinFeretDiameter":"Cilia Width (min feret) (um)",
-        "AreaShape_MinorAxisLength":"Cilia width (minor axis) (um)",
-        "AreaShape_Orientation":"Cilia Orientation (degrees)",
+        "AreaShape_MeanRadius": "Cilia Mean Radius",
+        "AreaShape_MinFeretDiameter": "Cilia Width (min feret) (um)",
+        "AreaShape_MinorAxisLength": "Cilia width (minor axis) (um)",
+        "AreaShape_Orientation": "Cilia Orientation (degrees)",
         "AreaShape_Perimeter": "Cilia Perimeter (um)",
-        "AreaShape_Solidity": "Cilia Solidity"
-        }
+        "AreaShape_Solidity": "Cilia Solidity",
+    }
     names_nuc = {
         "AreaShape_Area": " Nuclei Area (um2)",
         "AreaShape_MajorAxisLength": "Nuclei Diameter (Major Axis) (um)",
-        "AreaShape_MeanRadius":  "Nuclei Radius (mean) (um)",
+        "AreaShape_MeanRadius": "Nuclei Radius (mean) (um)",
         "AreaShape_Perimeter": "Nuclei Perimeter (um)",
-        "AreaShape_Solidity": "Nuclei Solidity"
+        "AreaShape_Solidity": "Nuclei Solidity",
     }
 
     names_cent = {
         "AreaShape_Area": "Centriole Area (um2)",
         "AreaShape_MajorAxisLength": "Centriole Diameter (major axis) (um)",
-        "AreaShape_MeanRadius":  "Centriole Radius (um)",
+        "AreaShape_MeanRadius": "Centriole Radius (um)",
         "AreaShape_Perimeter": "Centriole Perimeter (um)",
-        "AreaShape_Solidity": "Centriole Solidity"
+        "AreaShape_Solidity": "Centriole Solidity",
     }
     # Make dispatch dictionaries for all graphs to easily convert between them
     per_im_dispatch_dict = {
@@ -640,21 +640,15 @@ def main():
     histogram_dispatch_dict = {
         **histogram_dispatch_dict,
         **{
-            f"{names_cilia[col]}": partial(
-                how_many_cilia_per_size, col_idx=idx
-            )
+            f"{names_cilia[col]}": partial(how_many_cilia_per_size, col_idx=idx)
             for (col, idx) in cols_to_use
         },
         **{
-            f"{names_nuc[col]}": partial(
-                how_many_nuc_per_size, col_idx=idx
-            )
+            f"{names_nuc[col]}": partial(how_many_nuc_per_size, col_idx=idx)
             for (col, idx) in cols_to_use_cent
         },
         **{
-            f"{names_cent[col]}": partial(
-                how_many_cent_per_size, col_idx=idx
-            )
+            f"{names_cent[col]}": partial(how_many_cent_per_size, col_idx=idx)
             for (col, idx) in cols_to_use_cent
         },
     }
@@ -745,7 +739,6 @@ def main():
         scatter_figure.yaxis.major_label_text_font_size = "15pt"
         scatter_figure.xaxis.axis_label_text_font_size = "15pt"
         scatter_figure.yaxis.axis_label_text_font_size = "15pt"
-
 
     # Add dropdown to change graphs
     per_im_dropdown = Dropdown(
