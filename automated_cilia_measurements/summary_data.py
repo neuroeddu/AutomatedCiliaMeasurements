@@ -10,6 +10,7 @@ import numpy as np
 CSV_FOLDER = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/python_output/microm_converted"
 OUTPUT_CSV_DIR_PATH = "/Users/sneha/Desktop/mni/CLEAN_OUTPUT/python_output/c2c_output"
 ################################# TO CHANGE #################################
+
 # Initialize figures
 def make_figure(title, x_axis_label="", y_axis_label=""):
     p = figure(
@@ -105,24 +106,20 @@ def how_many_blank_per_size_helper(
 ):
     num_bins = 500
     step = 0.5
+    start=0
     if organelle == 2:
         if col_idx == 1:
             num_bins = 25
             step = 0.5
         elif col_idx == 9:
-            num_bins = 5
+            num_bins = 10
             step = 0.05
         elif col_idx == 10:
-            num_bins = 1.5
+            num_bins = 2.5
             step = 0.01
         elif col_idx == 11:
-            num_bins = 5
+            num_bins = 10
             step = 0.10
-        elif col_idx == 12:
-            num_bins = 5
-        elif col_idx == 13:
-            num_bins = 1
-            step = 0.01
         elif col_idx == 14:
             num_bins = 50
         elif col_idx == 15:
@@ -136,22 +133,24 @@ def how_many_blank_per_size_helper(
             step = 0.1
         elif col_idx == 18:
             num_bins = 1
-            step = 0.001
+            step = 0.0001
         elif col_idx == 20:
-            num_bins = 3
+            num_bins = 8
             step = 0.05
         elif col_idx == 21:
-            num_bins = 6
+            num_bins = 8
             step = 0.1
-        elif col_idx == 22:
-            num_bins = 1.75
-            step = 0.01
+        elif col_idx == 22: 
+            num_bins = 90
+            step = 10
+            start=-90
         elif col_idx == 23:
-            num_bins = 30
+            num_bins = 35
             step = 0.2
         elif col_idx == 24:
-            num_bins = 1
+            num_bins = 1.5
             step = 0.01
+
     if organelle == 1:
         if col_idx == 1:
             num_bins = 700
@@ -177,15 +176,15 @@ def how_many_blank_per_size_helper(
             step = 0.1
         if col_idx == 18:
             num_bins = 1
-            step = 0.01
+            step = 0.001
         if col_idx == 23:
             num_bins = 20
             step = 0.2
         if col_idx == 24:
             num_bins = 1
             step = 0.01
-
-    result = [0 for _ in np.arange(0, num_bins, step)]
+   
+    result = [0 for _ in np.arange(start, num_bins, step)]
 
     for num in range(1, num_im + 1):
         if grouped_valid_blank:
@@ -199,46 +198,46 @@ def how_many_blank_per_size_helper(
         for blank in blank_li:
             if grouped_valid_blank and int(blank[1]) not in valid_blank:
                 continue
-
+            
             cur_attr = blank[col_idx + 1]
-            # NOTE This has to be +1 becase the list of measurements has an additional index column
-            ranges = list(np.arange(num_bins, 0, -step))
+
+            ranges = list(np.arange(num_bins, start, -step))
             # [2, 1.9, 1.8, 1.7....]
             for c_ind, bucket_distance in enumerate(ranges):
                 if cur_attr >= bucket_distance:
                     result[len(ranges) - 1 - c_ind] += 1
                     break
 
-    return result, num_bins, step
+    return result, num_bins, step, start
 
 
 # Calculate number of cilia per size for each column
 def how_many_cilia_per_size(
     grouped_cilia, num_im, col_idx, grouped_valid_cilia, **kwargs
 ):
-    result, NUM_BINS, step = how_many_blank_per_size_helper(
+    result, NUM_BINS, step, start = how_many_blank_per_size_helper(
         grouped_cilia, num_im, col_idx, 2, grouped_valid_cilia
     )
 
-    return result, NUM_BINS, step, "Number of cilia"
+    return result, NUM_BINS, step, "Number of cilia", start
 
 
 def how_many_nuc_per_size(grouped_cell, num_im, col_idx, **kwargs):
-    result, NUM_BINS, step = how_many_blank_per_size_helper(
+    result, NUM_BINS, step, start = how_many_blank_per_size_helper(
         grouped_cell, num_im, col_idx, 1
     )
 
-    return result, NUM_BINS, step, "Number of nuclei"
+    return result, NUM_BINS, step, "Number of nuclei", start
 
 
 def how_many_cent_per_size(
     grouped_centriole, num_im, col_idx, grouped_valid_cent, **kwargs
 ):
-    result, NUM_BINS, step = how_many_blank_per_size_helper(
+    result, NUM_BINS, step, start = how_many_blank_per_size_helper(
         grouped_centriole, num_im, col_idx, 3, grouped_valid_cent
     )
 
-    return result, NUM_BINS, step, "Number of centrioles"
+    return result, NUM_BINS, step, "Number of centrioles", start
 
 
 # Calculate per-image averages of all columns for cilia
@@ -477,17 +476,6 @@ def num_nuc_to_solidity(grouped_cell, image_df, **kwargs):
     return [nuc, solidity, "Number of nuclei", "Nuclei solidity"]
 
 
-def check_units(col_idx):
-    to_multiply_x = {11, 15, 16, 17, 18, 20, 21, 23}
-    to_multiply_2x = {1}
-    result = "(default CellProfiler units)"
-    if col_idx in to_multiply_x:
-        result = "(micrometers)"
-    elif col_idx in to_multiply_2x:
-        result = "(micrometers squared)"
-    return result
-
-
 def main():
     # Load data
     cell_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Nucleus.csv", skipinitialspace=True)
@@ -505,8 +493,6 @@ def main():
         ("AreaShape_Compactness", 9),
         ("AreaShape_Eccentricity", 10),
         ("AreaShape_EquivalentDiameter", 11),
-        ("AreaShape_EulerNumber", 12),
-        ("AreaShape_Extent", 13),
         ("AreaShape_FormFactor", 14),
         ("AreaShape_MajorAxisLength", 15),
         ("AreaShape_MaxFeretDiameter", 16),
@@ -553,7 +539,38 @@ def main():
         OUTPUT_CSV_DIR_PATH + "/new_cent.csv", skipinitialspace=True
     )
     grouped_valid_cent = valid_cent_df.groupby(["0"])
+    
+    names_cilia = {
+        "AreaShape_Area": "Cilia Area (um2)",
+        "AreaShape_Compactness": "Cilia Compactness (arbitrary units)",
+        "AreaShape_Eccentricity": "Cilia Eccentricity",
+        "AreaShape_EquivalentDiameter": "Cilia Diameter (um)",
+        "AreaShape_FormFactor": "Cilia Form Factor",
+        "AreaShape_MajorAxisLength": "Cilia Length (major axis) (um)",
+        "AreaShape_MaxFeretDiameter": "Cilia Length (max feret) (um)",
+        "AreaShape_MaximumRadius": "Cilia Max Radius",
+        "AreaShape_MeanRadius":  "Cilia Mean Radius",
+        "AreaShape_MinFeretDiameter":"Cilia Width (min feret) (um)",
+        "AreaShape_MinorAxisLength":"Cilia width (minor axis) (um)",
+        "AreaShape_Orientation":"Cilia Orientation (degrees)",
+        "AreaShape_Perimeter": "Cilia Perimeter (um)",
+        "AreaShape_Solidity": "Cilia Solidity"
+        }
+    names_nuc = {
+        "AreaShape_Area": " Nuclei Area (um2)",
+        "AreaShape_MajorAxisLength": "Nuclei Diameter (Major Axis) (um)",
+        "AreaShape_MeanRadius":  "Nuclei Radius (mean) (um)",
+        "AreaShape_Perimeter": "Nuclei Perimeter (um)",
+        "AreaShape_Solidity": "Nuclei Solidity"
+    }
 
+    names_cent = {
+        "AreaShape_Area": "Centriole Area (um2)",
+        "AreaShape_MajorAxisLength": "Centriole Diameter (major axis) (um)",
+        "AreaShape_MeanRadius":  "Centriole Radius (um)",
+        "AreaShape_Perimeter": "Centriole Perimeter (um)",
+        "AreaShape_Solidity": "Centriole Solidity"
+    }
     # Make dispatch dictionaries for all graphs to easily convert between them
     per_im_dispatch_dict = {
         "Num nuclei per im": num_nuc_per_im,
@@ -623,19 +640,19 @@ def main():
     histogram_dispatch_dict = {
         **histogram_dispatch_dict,
         **{
-            f"Cilia {col} {check_units(idx)}": partial(
+            f"{names_cilia[col]}": partial(
                 how_many_cilia_per_size, col_idx=idx
             )
             for (col, idx) in cols_to_use
         },
         **{
-            f"Nuclei {col} {check_units(idx)}": partial(
+            f"{names_nuc[col]}": partial(
                 how_many_nuc_per_size, col_idx=idx
             )
             for (col, idx) in cols_to_use_cent
         },
         **{
-            f"Centriole {col} {check_units(idx)}": partial(
+            f"{names_cent[col]}": partial(
                 how_many_cent_per_size, col_idx=idx
             )
             for (col, idx) in cols_to_use_cent
@@ -677,9 +694,11 @@ def main():
 
         per_im_figure.yaxis.axis_label = event.item
         per_im_figure.xaxis.major_label_text_font_size = "0pt"
+        per_im_figure.xaxis.axis_label_text_font_size = "15pt"
+        per_im_figure.yaxis.axis_label_text_font_size = "15pt"
 
     def histogram_selection_callback(event):
-        new_data, num_bins, step, y_label = histogram_dispatch_dict[event.item](
+        new_data, num_bins, step, y_label, start = histogram_dispatch_dict[event.item](
             num_im=num_im,
             grouped_cilia=grouped_cilia,
             grouped_valid_cilia=grouped_valid_cilia,
@@ -688,13 +707,17 @@ def main():
             grouped_valid_cent=grouped_valid_cent,
         )
         histogram.data = {
-            "left": [i for i in list(np.arange(0, num_bins, step))],
-            "right": [i + step for i in list(np.arange(0, num_bins, step))],
+            "left": [i for i in list(np.arange(start, num_bins, step))],
+            "right": [i + step for i in list(np.arange(start, num_bins, step))],
             "top": new_data,
         }
 
         histogram_figure.xaxis.axis_label = event.item
         histogram_figure.yaxis.axis_label = y_label
+        histogram_figure.xaxis.major_label_text_font_size = "15pt"
+        histogram_figure.yaxis.major_label_text_font_size = "15pt"
+        histogram_figure.xaxis.axis_label_text_font_size = "15pt"
+        histogram_figure.yaxis.axis_label_text_font_size = "15pt"
 
     def scatter_selection_callback(event):
         new_x, new_y, x_label, y_label = scatter_dispatch_dict[event.item](
@@ -718,6 +741,11 @@ def main():
         }
         scatter_figure.yaxis.axis_label = y_label
         scatter_figure.xaxis.axis_label = x_label
+        scatter_figure.xaxis.major_label_text_font_size = "15pt"
+        scatter_figure.yaxis.major_label_text_font_size = "15pt"
+        scatter_figure.xaxis.axis_label_text_font_size = "15pt"
+        scatter_figure.yaxis.axis_label_text_font_size = "15pt"
+
 
     # Add dropdown to change graphs
     per_im_dropdown = Dropdown(

@@ -101,20 +101,21 @@ class MyGrid(GridLayout):
         box = BoxLayout()
 
         file_chooser = FileChooserListView(path=os.getcwd(), dirselect=True)
-        
+
         box.add_widget(file_chooser)
 
-        popup = Popup(title='Double click to choose desired file', content=box)
-        if not hasattr(self, 'popup_refs'):
-            self.popup_refs=[]
+        popup = Popup(title="Double click to choose desired file", content=box)
+        if not hasattr(self, "popup_refs"):
+            self.popup_refs = []
         self.popup_refs.append(popup)
-        file_chooser_button = Button(text='Choose file', size_hint_y=None, height=50)
+        file_chooser_button = Button(text="Choose file", size_hint_y=None, height=50)
         file_chooser_button.bind(on_press=popup.open)
+
         def file_chooser_handler(*args):
             self[widget_name] = file_chooser.selection[0]
             for popup in self.popup_refs:
                 popup.dismiss()
-                
+
         file_chooser.bind(selection=file_chooser_handler)
         return file_chooser_button
 
@@ -128,7 +129,9 @@ class MyGrid(GridLayout):
         self.cur_widgets = []
 
         self.append_widget(
-            "Input CSVs (from CellProfiler):", "input_csvs", self.file_chooser_widget('input_csvs')
+            "Input CSVs (from CellProfiler):",
+            "input_csvs",
+            self.file_chooser_widget("input_csvs"),
         )
 
         self.append_widget(
@@ -136,7 +139,9 @@ class MyGrid(GridLayout):
             "input_images",
             self.file_chooser_widget("input_images"),
         )
-        self.append_widget("Output folder:", "output", self.file_chooser_widget("output"))
+        self.append_widget(
+            "Output folder:", "output", self.file_chooser_widget("output")
+        )
 
         parent_name = "microm"
         color_check = [255, 255, 255, 2]
@@ -272,7 +277,7 @@ class MyGrid(GridLayout):
         self.submit = Button(text="Submit", size_hint_y=None, height=50)
         self.submit.bind(on_press=self.submit_callback)
         self.add_widget(self.submit)
-        
+
 
 class Gui(App):
     def build(self):
