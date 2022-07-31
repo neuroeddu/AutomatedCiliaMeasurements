@@ -121,9 +121,9 @@ def main(**args):
         full_df, og_df = normalize_and_clean(
             measurements_nuc, measurements_cilia, measurements_cent, c2c_df
         )
-        # Assume we do not have xmeans until proven otherwise 
+        # Assume we do not have xmeans until proven otherwise
         if args.get("umap"):
-            clusters=None
+            clusters = None
         if args.get("xmeans"):
             clusters = xmeans(full_df, clf, num, pca_2d, args.get("output"), og_df)
         # want to use clusters if exists else none
@@ -283,14 +283,14 @@ def normalize_and_clean(
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
     full_df.fillna(0, inplace=True)
 
-    # Normalize data and merge column names back in 
-    cols=list(full_df.columns)
-    cols=['to_del']+cols[1:] # NOTE this is done because pandas includes the index column
-    normalized_df=normalize(full_df)
-    normalized_df= pd.DataFrame(normalized_df, columns=cols)
-    normalized_df.drop(columns=['to_del'], 
-                axis=0, 
-                inplace=True)
+    # Normalize data and merge column names back in
+    cols = list(full_df.columns)
+    cols = ["to_del"] + cols[
+        1:
+    ]  # NOTE this is done because pandas includes the index column
+    normalized_df = normalize(full_df)
+    normalized_df = pd.DataFrame(normalized_df, columns=cols)
+    normalized_df.drop(columns=["to_del"], axis=0, inplace=True)
     return normalized_df, full_df
 
 
@@ -304,12 +304,13 @@ def umap_(full_df, num, output, clusters):
         plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
     plt.gca().set_aspect("equal", "datalim")
     plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
-    title_cluster = ' with XMeans clusters' if clusters else ''
+    title_cluster = " with XMeans clusters" if clusters else ""
     plt.title(f"UMAP projection for Image {num}{title_cluster}", fontsize=24)
 
-    save_name_cluster = '_with_XMeans_clusters' if clusters else ''
+    save_name_cluster = "_with_XMeans_clusters" if clusters else ""
     plt.savefig(join(output, f"UMAP_im_{num}{save_name_cluster}.png"))
     plt.close()
+
 
 def top_list(pc, n):
     top_list = []
@@ -321,11 +322,13 @@ def top_list(pc, n):
         # If the current word in the dictionary is bigger than the one in the list add it here
         for li_index, (old_index, old_elem) in enumerate(top_list):
             if cur_elem >= old_elem:
-                top_list = top_list[:li_index]+[(cur_index, cur_elem)]+top_list[li_index:]
-                added=True
+                top_list = (
+                    top_list[:li_index] + [(cur_index, cur_elem)] + top_list[li_index:]
+                )
+                added = True
                 break
 
-        # If we get through the whole top 10 list and we haven't added anything, we must be smaller than everything or the list 
+        # If we get through the whole top 10 list and we haven't added anything, we must be smaller than everything or the list
         # may be less than the number of elem, so add indiscriminately
         if not added:
             top_list.append((cur_index, cur_elem))
@@ -336,6 +339,7 @@ def top_list(pc, n):
 
     return top_list
 
+
 def pca_features(full_df, pca_7d, num, output):
 
     # Perform 7d PCA
@@ -343,7 +347,7 @@ def pca_features(full_df, pca_7d, num, output):
     components_list = abs(pca_7d.components_)
     columns_mapping = list(full_df.columns)
 
-    pc_components=[]
+    pc_components = []
     # Find top five elem in each PC
     for component in components_list:
         component = component.tolist()
@@ -386,21 +390,19 @@ def xmeans(full_df, clf, num, pca_2d, output, og_df):
         y_kmeans = y_kmeans.tolist()
 
         # Assign cluster numbers
-        og_df['Cluster'] = y_kmeans
-        full_df['Cluster'] = y_kmeans
-        
+        og_df["Cluster"] = y_kmeans
+        full_df["Cluster"] = y_kmeans
+
         # Write mean values for features in each cluster (using non-normalized values)
         for cluster in range(num_clusters):
 
             # Get only the points in one cluster
             cluster_df = og_df[og_df["Cluster"] == cluster]
-            cluster_df.drop(columns=['Cluster'], inplace=True)
-            
+            cluster_df.drop(columns=["Cluster"], inplace=True)
+
             # Find the mean of each feature and write to string
             mean_df = cluster_df.mean()
-            mean_df.drop(index=mean_df.index[0], 
-                axis=0, 
-                inplace=True)
+            mean_df.drop(index=mean_df.index[0], axis=0, inplace=True)
             mean_df = mean_df.to_string()
 
             # Print to file
@@ -412,11 +414,11 @@ def xmeans(full_df, clf, num, pca_2d, output, og_df):
     PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
     PCs_2d.columns = ["PC1_2d", "PC2_2d"]
     full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
-    
+
     # Print out data for xmeans and clusters into csv
     og_df = pd.concat([og_df, PCs_2d], axis=1, join="inner")
     og_df.to_csv(join(output, f"xmeans_data.csv"))
-    
+
     # Make data points for each cluster
     clusters_li = []
     for cluster in range(num_clusters):
