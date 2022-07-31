@@ -11,7 +11,7 @@ from plotly.offline import plot
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as shc
 import umap.umap_ as umap
-
+from sklearn.preprocessing import normalize
 
 def parse_args():
     # parse input arguments
@@ -107,12 +107,17 @@ def main(**args):
         c2c_pairings, tuned_parameters
     )
 
-    full_df = normalize_and_clean(
+    full_df, og_df = normalize_and_clean(
         measurements_nuc, measurements_cilia, measurements_cent, c2c_pairings
     )
 
     if args.get("umap"):
-        umap_(full_df, args.get("output"))
+        clusters=None
+    if args.get("xmeans"):
+        clusters = xmeans(full_df, clf, pca_2d, args.get("output"), og_df)
+    # want to use clusters if exists else none
+    if args.get("umap"):
+        umap_(full_df, args.get("output"), clusters)
     if args.get("pca_features"):
         pca_features(full_df, pca_7d, args.get("output"))
     if args.get("heirarchical"):
@@ -261,37 +266,83 @@ def normalize_and_clean(
     full_df.drop("ImageNumber", axis=1, inplace=True)
     # Prepare for clustering via scaling and dropping none values
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    # full_df.dropna(inplace=True)
     full_df.fillna(0, inplace=True)
 
-    return full_df
+    # Normalize data and merge column names back in 
+    cols=list(full_df.columns)
+    cols=['to_del']+cols[1:] # NOTE this is done because pandas includes the index column
+    normalized_df=normalize(full_df)
+    normalized_df= pd.DataFrame(normalized_df, columns=cols)
+    normalized_df.drop(columns=['to_del'], 
+                axis=0, 
+                inplace=True)
+    return normalized_df, full_df
 
 
-def umap_(full_df, output):
+def umap_(full_df, output, clusters):
     reducer = umap.UMAP()
     embedding = reducer.fit_transform(full_df)
-    fig1, ax1 = plt.subplots()
-    plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
+    # fig1, ax1 = plt.subplots()
+    if clusters:
+        plt.scatter(embedding[:, 0], embedding[:, 1], c=clusters, cmap="Spectral", s=5)
+    else:
+        plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
     plt.gca().set_aspect("equal", "datalim")
     plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
-    plt.title(f"UMAP projection", fontsize=24)
-    plt.savefig(join(output, f"UMAP.png"))
+    title_cluster = ' with XMeans clusters' if clusters else ''
+    plt.title(f"UMAP projection{title_cluster}", fontsize=24)
+
+    save_name_cluster = '_with_XMeans_clusters' if clusters else ''
+    plt.savefig(join(output, f"UMAP{save_name_cluster}.png"))
     plt.close()
 
 
+def top_list(pc, n):
+    top_list = []
+    # top list should be a tuple of the form (index, number)
+    # index so we can find it later and number so we can cont with top list
+
+    for cur_index, cur_elem in enumerate(pc):
+        added = False
+        # If the current word in the dictionary is bigger than the one in the list add it here
+        for li_index, (old_index, old_elem) in enumerate(top_list):
+            if cur_elem >= old_elem:
+                top_list = top_list[:li_index]+[(cur_index, cur_elem)]+top_list[li_index:]
+                added=True
+                break
+
+        # If we get through the whole top 10 list and we haven't added anything, we must be smaller than everything or the list 
+        # may be less than the number of elem, so add indiscriminately
+        if not added:
+            top_list.append((cur_index, cur_elem))
+
+        # Remove the smallest element in the list if the list is already full
+        if len(top_list) > n:
+            top_list.pop()
+
+    return top_list
+
+
 def pca_features(full_df, pca_7d, output):
-    x_new = pca_7d.fit_transform(full_df)
+    # Perform 7d PCA
+    _ = pca_7d.fit_transform(full_df)
     components_list = abs(pca_7d.components_)
     columns_mapping = list(full_df.columns)
 
+    pc_components=[]
+    # Find top five elem in each PC
     for component in components_list:
         component = component.tolist()
-        max_value = max(component)
+        sorted_components = top_list(component, 5)
+        pc_components.append(sorted_components)
 
+    # Print to file
     with open(join(output, f"pca_features.txt"), "w") as f:
-        f.write(f"the important features for each principal component are: ")
-        f.write(columns_mapping[component.index(max_value)])
-
+        f.write(f"the 5 important features for each principal component are: ")
+        for pc_num, sorted_components in enumerate(pc_components):
+            f.write(f"PC number {pc_num}:\n")
+            for index, _ in sorted_components:
+                f.write(f" {columns_mapping[index]}\n")
 
 def heirarchical_clustering(full_df, output):
     plt.figure(figsize=(10, 7))
@@ -303,7 +354,7 @@ def heirarchical_clustering(full_df, output):
     plt.close()
 
 
-def xmeans(full_df, clf, pca_2d, output):
+def xmeans(full_df, clf, pca_2d, output, og_df):
     # Perform X-Means
     clf.fit(full_df)
     with open(join(output, f"mean_val_features.txt"), "a+") as f:
@@ -315,12 +366,29 @@ def xmeans(full_df, clf, pca_2d, output):
         num_clusters = params["n_clusters"]
         f.write(f"Best number of clusters is {num_clusters}\n")
 
+        # Get the cluster numbers for each row in the data
         y_kmeans = best_clf.predict(full_df)
-        full_df["Cluster"] = y_kmeans
+        y_kmeans = y_kmeans.tolist()
+
+        # Assign cluster numbers
+        og_df['Cluster'] = y_kmeans
+        full_df['Cluster'] = y_kmeans
+
+        # Write mean values for features in each cluster (using non-normalized values)
         for cluster in range(num_clusters):
-            cluster_df = full_df[full_df["Cluster"] == cluster]
+
+            # Get only the points in one cluster
+            cluster_df = og_df[og_df["Cluster"] == cluster]
+            cluster_df.drop(columns=['Cluster'], inplace=True)
+            
+            # Find the mean of each feature and write to string
             mean_df = cluster_df.mean()
+            mean_df.drop(index=mean_df.index[0], 
+                axis=0, 
+                inplace=True)
             mean_df = mean_df.to_string()
+
+            # Print to file
             f.write(f"The mean values for features in cluster {cluster} are\n")
             f.write(mean_df)
             f.write("\n*****************************************\n")
@@ -330,7 +398,10 @@ def xmeans(full_df, clf, pca_2d, output):
     PCs_2d.columns = ["PC1_2d", "PC2_2d"]
     full_df = pd.concat([full_df, PCs_2d], axis=1, join="inner")
 
-    full_df.to_csv(join(output, f"xmeans_data.csv"))
+    # Print out data for xmeans and clusters into csv
+    og_df = pd.concat([og_df, PCs_2d], axis=1, join="inner")
+    og_df.to_csv(join(output, f"xmeans_data.csv"))
+    
     # Make data points for each cluster
     clusters_li = []
     for cluster in range(num_clusters):
