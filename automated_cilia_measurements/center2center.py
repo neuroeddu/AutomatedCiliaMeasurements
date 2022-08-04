@@ -132,6 +132,7 @@ def output_to_csv(centriole_to_cell, cilia_to_cell, num, cell_list):
 
     return c2c_output_formatted
 
+
 def remove_noise(x_list, noise_list, num):
     """
     Make a list of indices of x list that are attached to some y
