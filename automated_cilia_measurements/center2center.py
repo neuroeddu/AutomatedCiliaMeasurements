@@ -133,43 +133,6 @@ def output_to_csv(centriole_to_cell, cilia_to_cell, num, cell_list):
     return c2c_output_formatted
 
 
-def convert_dict_to_csv(c2c_output, output_path):
-    """
-    Convert our output into a csv
-
-    :param c2c_output: Output to store
-    :param output_path: Path to store output to
-    :returns: None
-    """
-
-    df = pd.DataFrame.from_dict(c2c_output)
-    df = df.dropna()
-    cols = df.columns.tolist()
-    df = df[
-        [
-            "num",
-            "cell",
-            "path_length_centrioles",
-            "centrioles",
-            "path_length_cilia",
-            "cilia",
-        ]
-    ]
-    df.to_csv(
-        path_or_buf=output_path,
-        header=[
-            "ImageNumber",
-            "Nucleus",
-            "PathLengthCentriole",
-            "Centriole",
-            "PathLengthCilia",
-            "Cilia",
-        ],
-        index=False,
-        float_format="%.10g",
-    )
-
-
 def remove_noise(x_list, noise_list, num):
     """
     Make a list of indices of x list that are attached to some y
