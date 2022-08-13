@@ -124,7 +124,7 @@ def main(**args):
     if args.get("heirarchical"):
         heirarchical_clustering(full_df, args.get("output"))
     if args.get("xmeans"):
-        xmeans(full_df, clf, pca_2d, args.get("output"))
+        xmeans(full_df, clf, pca_2d, args.get("output"), og_df)
 
 
 def setup_for_clustering(c2c_pairings, tuned_parameters):
@@ -361,40 +361,39 @@ def heirarchical_clustering(full_df, output):
 def xmeans(full_df, clf, pca_2d, output, og_df):
     # Perform X-Means
     clf.fit(full_df)
-    with open(join(output, f"mean_val_features.txt"), "a+") as f:
-        # Print out best result of K-Means
-        f.write(f"for all images:\n")  # 3,4,5
-        params = clf.best_params_  # n_clusters=3
-        best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
+    params = clf.best_params_  # n_clusters=3
+    best_clf = clf.best_estimator_  # KMeans(n_clusters=3)
 
-        num_clusters = params["n_clusters"]
-        f.write(f"Best number of clusters is {num_clusters}\n")
+    num_clusters = params["n_clusters"]
+    # Get the cluster numbers for each row in the data
+    y_kmeans = best_clf.predict(full_df)
+    y_kmeans = y_kmeans.tolist()
 
-        # Get the cluster numbers for each row in the data
-        y_kmeans = best_clf.predict(full_df)
-        y_kmeans = y_kmeans.tolist()
+    # Assign cluster numbers
+    og_df["Cluster"] = y_kmeans
+    full_df["Cluster"] = y_kmeans
 
-        # Assign cluster numbers
-        og_df["Cluster"] = y_kmeans
-        full_df["Cluster"] = y_kmeans
+    # Write mean values for features in each cluster (using non-normalized values)
+    for cluster in range(num_clusters):
 
-        # Write mean values for features in each cluster (using non-normalized values)
-        for cluster in range(num_clusters):
+        # Get only the points in one cluster
+        cluster_df = og_df[og_df["Cluster"] == cluster]
+        cluster_df.drop(columns=["Cluster"], inplace=True)
 
-            # Get only the points in one cluster
-            cluster_df = og_df[og_df["Cluster"] == cluster]
-            cluster_df.drop(columns=["Cluster"], inplace=True)
+        # Find the mean of each feature and write to string
+        mean_df = cluster_df.mean()
+        
+        # Combine all mean dataframes
+        if cluster == 0:
+            result = mean_df
+        else:
+            result = pd.concat([result, mean_df], axis=1 )
 
-            # Find the mean of each feature and write to string
-            mean_df = cluster_df.mean()
-            mean_df.drop(index=mean_df.index[0], axis=0, inplace=True)
-            mean_df = mean_df.to_string()
+    result.columns =list(range(len(result.columns)))
+    result = result.iloc[1: , :]
 
-            # Print to file
-            f.write(f"The mean values for features in cluster {cluster} are\n")
-            f.write(mean_df)
-            f.write("\n*****************************************\n")
-
+    result.to_csv(path_or_buf=join(output, "mean_val_features.csv"))
+    
     # Perform PCA to get the data in a reduced form
     PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
     PCs_2d.columns = ["PC1_2d", "PC2_2d"]

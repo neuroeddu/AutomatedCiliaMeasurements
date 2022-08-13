@@ -1,5 +1,6 @@
 .DS_Store
 sandbox.py
+sandbox2.py
 __pycache__
 *.html
 dist/

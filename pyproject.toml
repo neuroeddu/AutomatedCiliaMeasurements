@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "automated_cilia_measurements"
-version = "1.1.0"
+version = "1.2.0"
 description = "Pipeline to measure cilia, cells, and which cilia are close to which cells from microscopy images using CellProfiler and Python"
 authors = ["sneha <sneha.shinde350+0@gmail.com>"]
 
