@@ -94,9 +94,9 @@ def make_result_dict(
 
     nuc_without_cilia = associate_df[associate_df["Cilia"].astype(int) >= 0]
     result_dict["present cilia/nuclei"] = len(associate_df) / len(cell_df)
-    
+
     # Find present cilia/nuclei: present num cilia/present num nuclei since there's a 1:1 rat
-    # easiest way to do this: look at original num nuclei, then compare that to the df rn 
+    # easiest way to do this: look at original num nuclei, then compare that to the df rn
     # which would be (rows in df wherein cilia is present)/(rows in nuclei df)
     print(result_dict)
     return pd.DataFrame.from_dict([result_dict])
