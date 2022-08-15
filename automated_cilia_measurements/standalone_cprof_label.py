@@ -14,6 +14,7 @@ def make_paths(num, label, path, prefix, digits):
     )
     return path
 
+
 # Makes lists of coordinates
 def make_lists(im_num, grouped_cell):
     cell_df = grouped_cell.get_group(im_num)
@@ -42,17 +43,19 @@ def label_im(coordinate_list, im, num, output_path, PREFIX, DIGITS):
 def parse_args():
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", help="Cellprofiler CSV path", required=True)
+    parser.add_argument("-m", "--images", help="folder with images path", required=True)
     parser.add_argument(
-        "-i", "--input", help="Cellprofiler CSV path", required=True
+        "-f",
+        "--file_prefix",
+        help="file prefix entered in CellProfiler SaveImages",
+        required=True,
     )
     parser.add_argument(
-        "-m", "--images", help="folder with images path", required=True
-    )
-    parser.add_argument(
-        "-f", "--file_prefix", help="file prefix entered in CellProfiler SaveImages", required=True
-    )
-    parser.add_argument(
-        "-nm", "--num_digits", help="number of digits entered in CellProfiler SaveImages", required=True
+        "-nm",
+        "--num_digits",
+        help="number of digits entered in CellProfiler SaveImages",
+        required=True,
     )
     parser.add_argument("-o", "--output", help="output folder path", required=True)
     parser.add_argument(
@@ -72,16 +75,14 @@ def main(**args):
     CSV_PATH = args["input"]
     IM_DIR_PATH = args["images"]
     OUTPUT_IM_DIR_PATH = args["output"]
-    PREFIX=args["file_prefix"]
-    DIGITS=args["num_digits"]
+    PREFIX = args["file_prefix"]
+    DIGITS = args["num_digits"]
 
     # Columns we need to keep
     fields = ["ImageNumber", "Location_Center_X", "Location_Center_Y"]
 
     # Reads csv and groups by the im num
-    cell_df = pd.read_csv(
-        CSV_PATH, skipinitialspace=True, usecols=fields
-    )
+    cell_df = pd.read_csv(CSV_PATH, skipinitialspace=True, usecols=fields)
     grouped_cell = cell_df.groupby(["ImageNumber"])
 
     # Get number of images, either from the number inputted or from the total number of images
@@ -91,9 +92,7 @@ def main(**args):
     # Iterate through the images. Make list of cells, then make paths for our current image & label+save
     # image.
     for num in range(1, images + 1):
-        cell_list = make_lists(
-            num, grouped_cell
-        )
+        cell_list = make_lists(num, grouped_cell)
 
         im_path_cell = make_paths(num, False, IM_DIR_PATH, PREFIX, DIGITS)
         label_im(cell_list, im_path_cell, num, OUTPUT_IM_DIR_PATH, PREFIX, DIGITS)

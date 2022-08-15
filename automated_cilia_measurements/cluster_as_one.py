@@ -81,7 +81,7 @@ def main(**args):
         "AreaShape_Perimeter",
         "AreaShape_Solidity",
         "Location_Center_X",
-        "Location_Center_Y"
+        "Location_Center_Y",
     ]
 
     # Convert the CSVs into dataframes and group by image
@@ -184,7 +184,7 @@ def normalize_and_clean(
             "AreaShape_Perimeter": "NucPerimeter",
             "AreaShape_Solidity": "NucSolidity",
             "Location_Center_X": "NucX",
-            "Location_Center_Y": "NucY"
+            "Location_Center_Y": "NucY",
         }
     )
 
@@ -209,7 +209,7 @@ def normalize_and_clean(
             "AreaShape_Perimeter": "CiliaPerimeter",
             "AreaShape_Solidity": "CiliaSolidity",
             "Location_Center_X": "CiliaX",
-            "Location_Center_Y": "CiliaY"
+            "Location_Center_Y": "CiliaY",
         }
     )
 
@@ -234,7 +234,7 @@ def normalize_and_clean(
             "AreaShape_Perimeter": "CentPerimeter1",
             "AreaShape_Solidity": "CentSolidity1",
             "Location_Center_X": "CentX1",
-            "Location_Center_Y": "CentY1"
+            "Location_Center_Y": "CentY1",
         }
     )
     measurements_cent_2 = measurements_cent.rename(
@@ -258,7 +258,7 @@ def normalize_and_clean(
             "AreaShape_Perimeter": "CentPerimeter2",
             "AreaShape_Solidity": "CentSolidity2",
             "Location_Center_X": "CentX2",
-            "Location_Center_Y": "CentY2"
+            "Location_Center_Y": "CentY2",
         }
     )
 
@@ -277,19 +277,46 @@ def normalize_and_clean(
     full_df.drop("ImageNumber", axis=1, inplace=True)
     # Prepare for clustering via scaling and dropping none values
     full_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    
+
     # Add binary cols and distance cols
-    full_df['CiliaCent1']=np.where(full_df['Cent1'].isnull(), 0, (((full_df['CentX1']-full_df['CiliaX'])**2)+((full_df['CentY1']-full_df['CiliaY'])**2))**(1/2))
-    full_df['CiliaCent2']=np.where(full_df['Cent2'].isnull(), 0, (((full_df['CentX2']-full_df['CiliaX'])**2)+((full_df['CentY2']-full_df['CiliaY'])**2))**(1/2))
+    full_df["CiliaCent1"] = np.where(
+        full_df["Cent1"].isnull(),
+        0,
+        (
+            ((full_df["CentX1"] - full_df["CiliaX"]) ** 2)
+            + ((full_df["CentY1"] - full_df["CiliaY"]) ** 2)
+        )
+        ** (1 / 2),
+    )
+    full_df["CiliaCent2"] = np.where(
+        full_df["Cent2"].isnull(),
+        0,
+        (
+            ((full_df["CentX2"] - full_df["CiliaX"]) ** 2)
+            + ((full_df["CentY2"] - full_df["CiliaY"]) ** 2)
+        )
+        ** (1 / 2),
+    )
 
-    full_df['Cent1Bin']=np.where(full_df['Cent1'].isnull(), 0, 1)
-    full_df['Cent2Bin']=np.where(full_df['Cent2'].isnull(), 0, 1)
+    full_df["Cent1Bin"] = np.where(full_df["Cent1"].isnull(), 0, 1)
+    full_df["Cent2Bin"] = np.where(full_df["Cent2"].isnull(), 0, 1)
 
-    full_df.drop(columns=['CentX1', 'CentX2', 'CentY1', 'CentY2', 'NucX', 'NucY', 'CiliaX', 'CiliaY'])
+    full_df.drop(
+        columns=[
+            "CentX1",
+            "CentX2",
+            "CentY1",
+            "CentY2",
+            "NucX",
+            "NucY",
+            "CiliaX",
+            "CiliaY",
+        ]
+    )
     full_df.fillna(0, inplace=True)
-    
+
     # We don't want to cluster with these, but we want to have them in the data so we can refer back to them
-    df_to_cluster=full_df.drop(columns=['Nucleus', 'Cent1', 'Cent2'])
+    df_to_cluster = full_df.drop(columns=["Nucleus", "Cent1", "Cent2"])
 
     # Normalize data and merge column names back in
     cols = list(full_df.columns)
