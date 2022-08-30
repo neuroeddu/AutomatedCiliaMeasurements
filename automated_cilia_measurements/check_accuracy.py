@@ -5,7 +5,11 @@ from os.path import join
 
 
 def parse_args():
-    # get true results and results from c2c CSVs, and specify output path
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--true", help="path to true results", required=True)
     parser.add_argument("-c", "--c2c", help="path to c2c cilia CSV", required=True)
@@ -15,6 +19,16 @@ def parse_args():
 
 
 def make_accuracy_checker(true_df_im, c2c_df_im, result_li, num):
+    """
+    Check accuracy of cell painting
+
+    :param true_df_im: Dataframe of true counts
+    :param c2c_df_im: Dataframe of counts by pipeline
+    :param result_li: List of results for each image
+    :param num: Image number
+    :returns: List of results for each image
+    
+    """
 
     true_df_im.drop(columns=["ImageNum", "XCoord", "YCoord"], inplace=True)
 

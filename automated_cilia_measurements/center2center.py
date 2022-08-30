@@ -23,6 +23,14 @@ def make_lists(im_num, grouped):
 
 
 def nearest_child(parent_list, child_list, arity, threshold=float("inf")):
+    """
+    Find nearest child for each parent
+    :param parent_list: List of parent coordinates
+    :param child_list: List of child coordinates
+    :param arity: How many children each parent can have
+    :param threshold: Distance threshold from parent to child
+    :returns: List of child pairs, List of children without parent
+    """
 
     kd_tree = KDTree(parent_list)
     child_to_parent = [
@@ -97,7 +105,17 @@ def convert_dict_to_csv(c2c_output, output_path):
     )
 
 
-def output_to_csv(centriole_to_cell, cilia_to_cell, num, cell_list):
+def combine_lists(centriole_to_cell, cilia_to_cell, num, cell_list):
+    """
+    Combine the cell/centriole and cell/cilia lists to make one unified dictionary
+
+    :param centriole_to_cell: List of centrioles and cells they attach to
+    :param cilia_to_cell: List of cilia and cells they attach to
+    :param num: Image number
+    :param cell_list: List of cells to initialize output with
+    :returns: List of properly formatted output
+    """
+
     c2c_output_formatted = [
         {
             "num": num,
@@ -154,6 +172,11 @@ def remove_noise(x_list, noise_list, num):
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     # get input/output fol using argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -200,21 +223,24 @@ def main(**args):
         # Match centrioles to cell (nuclei)
         centriole_to_cell, cent_to_remove = nearest_child(cell_list, centriole_list, 2)
 
+        # Make list of valid cent
         _, valid_cent_indices = remove_noise(centriole_list, cent_to_remove, num)
         valid_cent_indices = [[idx[0], (idx[1] + 1)] for idx in valid_cent_indices]
         valid_cent += valid_cent_indices
 
-        # Match cilia to cells
+        # Match cilia to cell
         cilia_to_cell, cilia_to_remove = nearest_child(cell_list, cilia_list, 1)
 
+        # Make list of valid cilia
         _, valid_cilia_indices = remove_noise(cilia_list, cilia_to_remove, num)
         valid_cilia_indices = [[idx[0], (idx[1] + 1)] for idx in valid_cilia_indices]
         valid_cilia += valid_cilia_indices
 
-        c2c_formatted = output_to_csv(centriole_to_cell, cilia_to_cell, num, cell_list)
-
+        # Combine the two match lists and add to the list of all output 
+        c2c_formatted = combine_lists(centriole_to_cell, cilia_to_cell, num, cell_list)
         c2c_output += c2c_formatted
 
+    # Finally, output valid lists and pairing list as csv
     valid_cent_df = pd.DataFrame(valid_cent)
     valid_cilia_df = pd.DataFrame(valid_cilia)
 
