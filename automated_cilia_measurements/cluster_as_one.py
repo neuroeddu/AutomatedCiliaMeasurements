@@ -182,7 +182,6 @@ def normalize_and_clean(
     :param c2c_pairings: Dataframe of all pairings betwen nuclei, cilia, and centrioles
     :returns: Normalized dataframe, Merged dataframe without normalization
     """
-
     # Prepare to merge
     measurements_nuc = measurements_nuc.rename(
         columns={
@@ -481,6 +480,16 @@ def heirarchical_clustering(full_df, output):
 
 
 def xmeans(full_df, clf, pca_2d, output, og_df):
+    """
+    Perform modified K-Means clustering
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param clf: XMeans instance
+    :param pca_2d: PCA 2d instance
+    :param og_df: Dataframe of all measurements to be used in clustering without normalization
+    :returns: None
+    """
     # Perform X-Means
     clf.fit(full_df)
     params = clf.best_params_  # n_clusters=3

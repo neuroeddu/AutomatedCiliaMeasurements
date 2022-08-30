@@ -7,6 +7,17 @@ from os.path import join
 def draw_things(
     cur_nuc, cur_cent, img, new_list_cell, new_list_centriole, grayscale_num
 ):
+    """
+    Draw numbers and lines onto images
+
+    :param cur_nuc: Nucleus we want to draw
+    :param cur_cent: Centriole/cilia we want to draw
+    :param img: Image to draw on
+    :param new_list_cell: Measurements for nuclei
+    :param new_list_centriole: Measurements for centrioles/cilia
+    :param grayscale_num: Color of the line
+    :returns: None
+    """
 
     nuc_x = int(new_list_cell[int(cur_nuc) - 1][0])
     nuc_y = int(new_list_cell[int(cur_nuc) - 1][1])
@@ -24,6 +35,11 @@ def draw_things(
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-i", "--input", help="folder with cellprofiler CSVs path", required=True

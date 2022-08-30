@@ -15,7 +15,11 @@ import umap.umap_ as umap
 
 
 def parse_args():
-    # parse input arguments
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-m", "--measurements", help="path to CellProfiler CSVs", required=True
@@ -138,6 +142,13 @@ def main(**args):
 
 
 def setup_for_clustering(c2c_pairings, tuned_parameters):
+    """
+    Set up clustering visualization and split centrioles into two columns
+
+    :param c2c_pairings: Dataframe of just pairings
+    :param tuned_parameters: Parameters to make KMeans with
+    :returns: Scores to judge accuracy, GridSearchCV instance, PCA 2d instance, PCA 7d instance, KMeans instance, Pairing dataframe with split centrioles
+    """
     c2c_pairings["Centriole"] = (
         c2c_pairings["Centriole"].fillna("[]").apply(lambda x: eval(x))
     )
@@ -171,7 +182,15 @@ def setup_for_clustering(c2c_pairings, tuned_parameters):
 def normalize_and_clean(
     measurements_nuc, measurements_cilia, measurements_cent, c2c_df
 ):
+    """
+    Merge dataframes together and add columns to the newly-created full dataframe
 
+    :param measurements_nuc: Dataframe of nuclei measurements
+    :param measurements_cilia: Dataframe of cilia measurements
+    :param measurements_cent: Dataframe of centriole measurements
+    :param c2c_pairings: Dataframe of all pairings betwen nuclei, cilia, and centrioles
+    :returns: Normalized dataframe, Merged dataframe without normalization
+    """
     # Prepare to merge
     measurements_nuc = measurements_nuc.rename(
         columns={
@@ -346,6 +365,15 @@ def normalize_and_clean(
 
 
 def umap_(full_df, num, output, clusters, og_df):
+    """
+    Make UMAPs for the data colored by XMeans clusters and intensities of specific columns
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param clusters: Column of cluster numbers for each row in full_df
+    :param og_df: Dataframe of all measurements to be used in clustering with no normalization
+    :returns: None
+    """
     reducer = umap.UMAP()
     embedding = reducer.fit_transform(full_df)
     # if we want to use xmeans clusters, use them
@@ -383,6 +411,13 @@ def umap_(full_df, num, output, clusters, og_df):
 
 
 def top_list(pc, n):
+    """
+    Make list of top n elements given list pc
+
+    :param pc: List of elements
+    :param n: How many top elements should be selected
+    :returns: List of top n elements in list pc 
+    """
     top_list = []
     # top list should be a tuple of the form (index, number)
     # index so we can find it later and number so we can cont with top list
@@ -411,7 +446,14 @@ def top_list(pc, n):
 
 
 def pca_features(full_df, pca_7d, num, output):
+    """
+    Find most relevant features via performing a 7D PCA
 
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param pca_7d: 7D PCA instance
+    :returns: None
+    """
     # Perform 7d PCA
     _ = pca_7d.fit_transform(full_df)
     components_list = abs(pca_7d.components_)
@@ -435,6 +477,14 @@ def pca_features(full_df, pca_7d, num, output):
 
 # Make a dendrogram
 def heirarchical_clustering(full_df, num, output):
+    """
+    Perform heirarchical clustering
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param pca_7d: 7D PCA instance
+    :returns: None
+    """
     plt.figure(figsize=(10, 7))
     plt.title(f"Dendrogram for Image {num}")
     dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
@@ -445,6 +495,16 @@ def heirarchical_clustering(full_df, num, output):
 
 
 def xmeans(full_df, clf, num, pca_2d, output, og_df):
+    """
+    Perform modified K-Means clustering
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param clf: XMeans instance
+    :param pca_2d: PCA 2d instance
+    :param og_df: Dataframe of all measurements to be used in clustering without normalization
+    :returns: None
+    """
     # Perform X-Means
     clf.fit(full_df)
     params = clf.best_params_  # n_clusters=3
