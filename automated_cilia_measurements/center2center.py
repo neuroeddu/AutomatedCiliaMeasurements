@@ -14,7 +14,7 @@ def make_lists(im_num, grouped):
 
     :param im_num: The image number
     :param grouped: The dataframe we want to get relevant rows of
-    :returns: list of (x,y) coordinates for all relevant rows of dataframe
+    :returns: List of (x,y) coordinates for all relevant rows of dataframe
     """
 
     im_df = grouped.get_group(im_num)
