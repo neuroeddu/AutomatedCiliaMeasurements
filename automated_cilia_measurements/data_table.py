@@ -4,6 +4,11 @@ from os.path import join
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-i", "--input", help="folder with cellprofiler CSVs path", required=True
@@ -52,6 +57,17 @@ def main(**args):
 def make_result_dict(
     cell_df, cilia_df, grouped_cell, valid_cilia_df, grouped_valid_cilia, associate_df
 ):
+    """
+    Make data table and output 
+
+    :param cell_df: Dataframe with all nuclei measurements
+    :param cilia_df: Dataframe with all cilia measurements
+    :param grouped_cell: Dataframe with nuclei measurements grouped by image number
+    :param valid_cilia_df: Dataframe with numbers of cilia that are valid (ie paired)
+    :param grouped_valid_cilia: Dataframe with numbers of cilia that are valid grouped by image number
+    :param associate_df: Dataframe of all pairings
+    :returns: Data table dictionary
+    """
     # Set up output dictionary
     result_dict = {
         "cilia num": -1,

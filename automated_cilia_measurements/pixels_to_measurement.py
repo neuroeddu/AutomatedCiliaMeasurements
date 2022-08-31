@@ -4,6 +4,11 @@ from os.path import join
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-m", "--measurements", help="path to CellProfiler CSVs", required=True
@@ -23,6 +28,14 @@ def parse_args():
 def convert_to_microm(
     multiply_factor, measurements_nuc, measurements_cilia, measurements_cent
 ):
+    """
+    Convert measurements to micrometers
+    :param multiply_factor: Conversion factor
+    :param measurements_nuc: Nuclei measurements to convert
+    :param measurements_cilia: Cilia measurements to convert
+    :param measurements_cent: Centriole measurements to convert
+    :returns: Measurements with conversion factor updated
+    """
 
     to_multiply_x = [
         "AreaShape_EquivalentDiameter",

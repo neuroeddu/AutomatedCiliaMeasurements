@@ -3,8 +3,17 @@ from PIL import Image, ImageDraw
 import argparse
 from os.path import join
 
-# Makes paths for us to be able to find init imgs / for images to go
+
 def make_paths(num, channel, label, path):
+    """
+    Make paths to get labels for images
+
+    :param num: Image number
+    :param channel: Channel of image
+    :param label: Whether the image is labeled or not
+    :param path: Image directory path
+    :returns: Path of image to draw on
+    """
     CHANNEL_DICT = {
         "01": "NucleusOverlay",
         "02": "CiliaOverlay",
@@ -17,16 +26,31 @@ def make_paths(num, channel, label, path):
     return path
 
 
-# Makes list of coordinates for each df
 def helper_make_lists(im_num, grouped):
+    """
+    Group dataframe into only rows where image is im_num and return the values in a list
+
+    :param im_num: The image number
+    :param grouped: The dataframe we want to get relevant rows of
+    :returns: list of (x,y) coordinates for all relevant rows of dataframe
+    """
     im_df = grouped.get_group(im_num)
     im_df.drop("ImageNumber", axis=1, inplace=True)
     new_list = im_df.values.tolist()
     return new_list
 
 
-# Makes lists of coordinates
+
 def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
+    """
+    Makes lists of coordinates for each type of stain
+
+    :param im_num: The image number
+    :param grouped_cell: Cell measurements dataframe
+    :param grouped_cilia: Cilia measurements dataframe
+    :param grouped_centriole: Centriole measurements dataframe
+    :returns: List of measurements for each dataframe
+    """
     cell_list = helper_make_lists(im_num, grouped_cell)
     cilia_list = helper_make_lists(im_num, grouped_cilia)
     centriole_list = None
@@ -35,8 +59,17 @@ def make_lists(im_num, grouped_cell, grouped_cilia, grouped_centriole):
     return cell_list, cilia_list, centriole_list
 
 
-# Labels image
 def label_im(coordinate_list, im, num, channel, output_path):
+    """
+    Draw numbers onto images
+
+    :param coordinate_list: (x,y) coordinates for each organelle 
+    :param im: Image path
+    :param num: Image number
+    :param channel: Channel of stain
+    :param output_path: Image output directory
+    :returns: None
+    """
     img = Image.open(im)
 
     # Writes number onto image at center
@@ -53,6 +86,11 @@ def label_im(coordinate_list, im, num, channel, output_path):
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     # parsing
     parser = argparse.ArgumentParser()
     parser.add_argument(

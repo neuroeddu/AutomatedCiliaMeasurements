@@ -8,6 +8,16 @@ CHANNEL_DICT = {"01": "Nucleus", "02": "Cilia", "03": "Centriole"}
 
 
 def label_im(coordinate_list, im, num, channel, output_path):
+    """
+    Draw numbers onto images
+
+    :param coordinate_list: (x,y) coordinates for each organelle 
+    :param im: Image path
+    :param num: Image number
+    :param channel: Channel of stain
+    :param output_path: Image output directory
+    :returns: None
+    """
     img = Image.open(im)
 
     # Writes number onto image at center
@@ -29,6 +39,15 @@ def label_im(coordinate_list, im, num, channel, output_path):
 
 
 def make_paths(num, label, channel, path):
+    """
+    Make paths to get labels for images
+
+    :param num: Image number
+    :param label: Whether the image is labeled or not
+    :param channel: Channel of image
+    :param path: Image directory path
+    :returns: Path of image to draw on
+    """
     path = join(
         path,
         (
@@ -42,6 +61,11 @@ def make_paths(num, label, channel, path):
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-m", "--measurements", help="path to cellprofiler measurements", required=True

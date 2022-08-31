@@ -15,6 +15,11 @@ from sklearn.preprocessing import normalize
 
 
 def parse_args():
+    """
+    Parse passed in arguments
+
+    :returns: Necessary arguments to use the script
+    """
     # parse input arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -120,7 +125,7 @@ def main(**args):
         clusters = xmeans(full_df, clf, pca_2d, args.get("output"), og_df)
     # want to use clusters if exists else none
     if args.get("umap"):
-        umap_(full_df, args.get("output"), clusters)
+        umap_(full_df, args.get("output"), clusters, og_df)
     if args.get("pca_features"):
         pca_features(full_df, pca_7d, args.get("output"))
     if args.get("heirarchical"):
@@ -130,6 +135,13 @@ def main(**args):
 
 
 def setup_for_clustering(c2c_pairings, tuned_parameters):
+    """
+    Set up clustering visualization and split centrioles into two columns
+
+    :param c2c_pairings: Dataframe of just pairings
+    :param tuned_parameters: Parameters to make KMeans with
+    :returns: Scores to judge accuracy, GridSearchCV instance, PCA 2d instance, PCA 7d instance, KMeans instance, Pairing dataframe with split centrioles
+    """
     c2c_pairings["Centriole"] = (
         c2c_pairings["Centriole"].fillna("[]").apply(lambda x: eval(x))
     )
@@ -161,7 +173,15 @@ def setup_for_clustering(c2c_pairings, tuned_parameters):
 def normalize_and_clean(
     measurements_nuc, measurements_cilia, measurements_cent, c2c_pairings
 ):
+    """
+    Merge dataframes together and add columns to the newly-created full dataframe
 
+    :param measurements_nuc: Dataframe of nuclei measurements
+    :param measurements_cilia: Dataframe of cilia measurements
+    :param measurements_cent: Dataframe of centriole measurements
+    :param c2c_pairings: Dataframe of all pairings betwen nuclei, cilia, and centrioles
+    :returns: Normalized dataframe, Merged dataframe without normalization
+    """
     # Prepare to merge
     measurements_nuc = measurements_nuc.rename(
         columns={
@@ -323,31 +343,66 @@ def normalize_and_clean(
     cols = ["to_del"] + cols[
         1:
     ]  # NOTE this is done because pandas includes the index column
-    normalized_df = normalize(df_to_cluster)
+    normalized_df = normalize(df_to_cluster, axis=1)
     normalized_df = pd.DataFrame(normalized_df, columns=cols)
     normalized_df.drop(columns=["to_del"], axis=0, inplace=True)
     return normalized_df, full_df
 
 
-def umap_(full_df, output, clusters):
-    reducer = umap.UMAP()
+def umap_(full_df, output, clusters, og_df):
+    """
+    Make UMAPs for the data colored by XMeans clusters and intensities of specific columns
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param clusters: Column of cluster numbers for each row in full_df
+    :param og_df: Dataframe of all measurements to be used in clustering with no normalization
+    :returns: None
+    """
+    reducer = umap.UMAP(metric='euclidean', min_dist=0.8)
     embedding = reducer.fit_transform(full_df)
-    # fig1, ax1 = plt.subplots()
     if clusters:
         plt.scatter(embedding[:, 0], embedding[:, 1], c=clusters, cmap="Spectral", s=5)
-    else:
-        plt.scatter(embedding[:, 0], embedding[:, 1], cmap="Spectral", s=5)
-    plt.gca().set_aspect("equal", "datalim")
-    plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
-    title_cluster = " with XMeans clusters" if clusters else ""
-    plt.title(f"UMAP projection{title_cluster}", fontsize=24)
+        plt.gca().set_aspect("equal", "datalim")
+        plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
+        plt.title(f"UMAP with XMeans clusters", fontsize=18)
+        plt.savefig(join(output, f"UMAP_with_XMeans_clusters.png"))
+        plt.close()
 
-    save_name_cluster = "_with_XMeans_clusters" if clusters else ""
-    plt.savefig(join(output, f"UMAP{save_name_cluster}.png"))
-    plt.close()
+    # also, do intensity umaps
+    cols = [
+        "CiliaArea",
+        "CiliaMajorAxisLength",
+        "CiliaMinorAxisLength",
+        "NucArea",
+        "PathLengthCilia",
+        "CiliaCent1",
+        "CiliaCent2",
+    ]
+
+    # Use the same embeddings, but different colors, to make intensity umaps
+    for col in cols:
+        # function that tells us what 80% of our data falls in
+        _, bins = pd.qcut(og_df[col], 9, labels=False, retbins=True, duplicates="drop")
+        vmax = bins[
+            int(0.8 * len(bins))
+        ]  # Only go up to 8th decile, so that outliers are not disproportionately represented on the umap colors
+        plt.scatter(embedding[:, 0], embedding[:, 1], c=og_df[col], s=1, vmax=vmax)
+        plt.colorbar()
+        plt.gca().set_aspect("equal", "datalim")
+        plt.title(f"UMAP colored by {col}", fontsize=18)
+        plt.savefig(join(output, f"UMAP_clusters_{col}.png"))
+        plt.close()
 
 
 def top_list(pc, n):
+    """
+    Make list of top n elements given list pc
+
+    :param pc: List of elements
+    :param n: How many top elements should be selected
+    :returns: List of top n elements in list pc 
+    """
     top_list = []
     # top list should be a tuple of the form (index, number)
     # index so we can find it later and number so we can cont with top list
@@ -376,6 +431,14 @@ def top_list(pc, n):
 
 
 def pca_features(full_df, pca_7d, output):
+    """
+    Find most relevant features via performing a 7D PCA
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param pca_7d: 7D PCA instance
+    :returns: None
+    """
     # Perform 7d PCA
     _ = pca_7d.fit_transform(full_df)
     components_list = abs(pca_7d.components_)
@@ -398,6 +461,15 @@ def pca_features(full_df, pca_7d, output):
 
 
 def heirarchical_clustering(full_df, output):
+    """
+    Perform heirarchical clustering
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param pca_7d: 7D PCA instance
+    :returns: None
+    """
+    
     plt.figure(figsize=(10, 7))
     plt.title(f"Dendrogram")
     dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
@@ -408,6 +480,16 @@ def heirarchical_clustering(full_df, output):
 
 
 def xmeans(full_df, clf, pca_2d, output, og_df):
+    """
+    Perform modified K-Means clustering
+
+    :param full_df: Normalized dataframe of all measurements to be used in clustering
+    :param output: Output path for images
+    :param clf: XMeans instance
+    :param pca_2d: PCA 2d instance
+    :param og_df: Dataframe of all measurements to be used in clustering without normalization
+    :returns: None
+    """
     # Perform X-Means
     clf.fit(full_df)
     params = clf.best_params_  # n_clusters=3
