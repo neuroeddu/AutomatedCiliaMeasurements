@@ -354,7 +354,7 @@ def normalize_and_clean(
     # We don't want to cluster with these, but we want to have them in the data so we can refer back to them
     df_to_cluster = full_df.drop(columns=["Nucleus", "Cent1", "Cent2"])
     # Normalize data and merge column names back in
-    cols = list(full_df.columns)
+    cols = list(df_to_cluster.columns)
     cols = ["to_del"] + cols[
         1:
     ]  # NOTE this is done because pandas includes the index column
