@@ -93,25 +93,24 @@ def main(**args):
     images = int(images)
 
     for num in range(1, images + 1):
-        # Load grouped data into lists
-        df_cell = grouped_cell.get_group(num)
+	# Load grouped data into lists
+        df_cell = (grouped_cell.get_group(num)).copy()
         df_cell.drop("ImageNumber", axis=1, inplace=True)
         new_list_cell = df_cell.values.tolist()
 
-        df_centriole = grouped_centriole.get_group(num)
+        df_centriole = (grouped_centriole.get_group(num)).copy()
         df_centriole.drop("ImageNumber", axis=1, inplace=True)
         new_list_centriole = df_centriole.values.tolist()
 
-        df_cilia = grouped_cilia.get_group(num)
+        df_cilia = (grouped_cilia.get_group(num)).copy()
         df_cilia.drop("ImageNumber", axis=1, inplace=True)
         new_list_cilia = df_cilia.values.tolist()
 
-        df_associates = grouped_associates.get_group(num)
+        df_associates = (grouped_associates.get_group(num)).copy()
         df_associates.drop("ImageNumber", axis=1, inplace=True)
         new_list_associates = df_associates.values.tolist()
 
         # Load combined images
-
         path = join(IM_CSV_DIR_PATH, ("CombinedIm" + f"{num:04}" + ".tiff"))
         img = Image.open(path)
 

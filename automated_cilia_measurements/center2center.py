@@ -17,7 +17,7 @@ def make_lists(im_num, grouped):
     :returns: List of (x,y) coordinates for all relevant rows of dataframe
     """
 
-    im_df = grouped.get_group(im_num)
+    im_df = (grouped.get_group(im_num)).copy()
     im_df.drop("ImageNumber", axis=1, inplace=True)
     return im_df.values.tolist()
 
@@ -244,10 +244,11 @@ def main(**args):
     valid_cent_df = pd.DataFrame(valid_cent)
     valid_cilia_df = pd.DataFrame(valid_cilia)
 
-    convert_dict_to_csv(c2c_output, join(OUTPUT_CSV_DIR_PATH, "c2coutput.csv"))
+    convert_dict_to_csv(c2c_output, join(OUTPUT_CSV_DIR_PATH, "c2c_output.csv"))
     valid_cent_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "new_cent.csv"))
     valid_cilia_df.to_csv(join(OUTPUT_CSV_DIR_PATH, "new_cilia.csv"))
 
 
 if __name__ == "__main__":
     main()
+

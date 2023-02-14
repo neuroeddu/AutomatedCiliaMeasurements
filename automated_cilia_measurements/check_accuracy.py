@@ -70,9 +70,9 @@ def main(**args):
     result_li = []
 
     for num in range(1, num_im + 1):
-        c2c_df_im = grouped_c2c.get_group(num)
+        c2c_df_im = (grouped_c2c.get_group(num)).copy()
         c2c_df_im.drop(columns=["0"], inplace=True)
-        true_df_im = grouped_true.get_group(num)
+        true_df_im = (grouped_true.get_group(num)).copy()
         result_li = make_accuracy_checker(true_df_im, c2c_df_im, result_li, num)
 
     # Write to result csv

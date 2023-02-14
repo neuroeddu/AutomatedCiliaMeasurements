@@ -1,5 +1,4 @@
-from imp import create_dynamic
-import sys
+
 import os
 import argparse
 from automated_cilia_measurements.pixels_to_measurement import (
@@ -13,6 +12,7 @@ from automated_cilia_measurements.label_c2c import main as label_c2c
 from automated_cilia_measurements.label_valid_cilia import main as organelle_labeler
 from automated_cilia_measurements.check_accuracy import main as check_accuracy
 from automated_cilia_measurements.cluster_as_one import main as cluster_as_one
+from automated_cilia_measurements.summary_measurements import main as summary_measurements
 
 
 def parse_args():
@@ -178,6 +178,38 @@ def parse_args():
         help="true results of cilia path, if accuracy checker wanted",
         required=False,
     )
+
+    parser.add_argument(
+        "-mi",
+        "--measurements_per_im",
+        help="whether measurements per image should be included",
+        required=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "-sc",
+        "--scatters",
+        help="whether scatterplots should be included",
+        required=False,
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-hs",
+        "--hist",
+        help="whether histograms should be included",
+        required=False,
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-b", 
+        "--bins", 
+        help="enter something here if you want to use custom bins for histograms", 
+        required=False, 
+        action="store_true",
+    )
+
     return vars(parser.parse_args())
 
 
@@ -222,7 +254,7 @@ def main(**args):
         if not args.get("cluster_as_one"):
             clustering(
                 measurements=csvs_in,
-                c2c=os.path.join(c2c_output_path, "c2coutput.csv"),
+                c2c=os.path.join(c2c_output_path, "c2c_output.csv"),
                 xmeans=args.get("xmeans"),
                 pca_features=args.get("pca_features"),
                 heirarchical=args.get("heirarchical"),
@@ -232,12 +264,30 @@ def main(**args):
         else:
             cluster_as_one(
                 measurements=csvs_in,
-                c2c=os.path.join(c2c_output_path, "c2coutput.csv"),
+                c2c=os.path.join(c2c_output_path, "c2c_output.csv"),
                 xmeans=args.get("xmeans"),
                 pca_features=args.get("pca_features"),
                 heirarchical=args.get("heirarchical"),
                 umap=args.get("umap"),
                 output=cluster_output,
+            )
+    if (
+        args.get("measurements_per_im")
+        or args.get("scatters")
+        or args.get("hist")
+    ):
+        summary_measure_output = os.path.join(dir_out, "summary_measures_output")
+
+        if not os.path.exists(summary_measure_output):
+            os.mkdir(summary_measure_output)
+        if not args.get("cluster_as_one"):
+            summary_measurements(
+                measurements=csvs_in,
+                c2c_results=os.path.join(c2c_output_path),
+                measurements_per_im=args.get("measurements_per_im"),
+                scatters=args.get("scatters"),
+                hist=args.get("hist"),
+                output=summary_measure_output,
             )
 
     if args.get("cellprofiler_labeling"):
@@ -331,3 +381,4 @@ def main(**args):
 
 if __name__ == "__main__":
     main()
+

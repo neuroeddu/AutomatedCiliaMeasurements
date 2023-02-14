@@ -78,6 +78,10 @@ class MyGrid(GridLayout):
             pca_features=self["pca_features"].active,
             heirarchical=self["heirarchical"].active,
             umap=self["umap"].active,
+            measurements_per_im=self['measurements_per_im'].active, 
+            scatters=self['scatters'].active,
+            hist=self['hist'].active,
+            bins=self['bins'].active,
             cellprofiler_labeling=self["cellprofiler_labeling"].active,
             num_cellprofiler_images=self["num_cellprofiler_images"]
             and self["num_cellprofiler_images"].text,
@@ -166,6 +170,27 @@ class MyGrid(GridLayout):
         self.append_widget("Make XMeans?", "xmeans", CheckBox(color=color_check))
         self.append_widget("Perform PCA", "pca_features", CheckBox(color=color_check))
         self.append_widget("Perform UMAP", "umap", CheckBox(color=color_check))
+
+        self.append_widget(
+            "Make measurements per image bars?", "measurements_per_im", CheckBox(color=color_check)
+        )
+        self.append_widget("Make scatterplots?", "scatters", CheckBox(color=color_check))
+
+        parent_name = "hist"
+        cb = CheckBox(color=color_check)
+        cb.bind(
+            active=self.create_dynamic_checkbox_handler(
+                parent_name,
+                [
+                    (
+                        "Do you want to enter in custom bins for the histograms?",
+                        "bins",
+                        CheckBox(color=color_check),
+                    ),
+                ],
+            )
+        )
+        self.append_widget("Make histograms ?", parent_name, cb)
 
         parent_name = "cellprofiler_labeling"
         cb = CheckBox(color=color_check)
@@ -292,3 +317,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

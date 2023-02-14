@@ -34,7 +34,7 @@ def helper_make_lists(im_num, grouped):
     :param grouped: The dataframe we want to get relevant rows of
     :returns: list of (x,y) coordinates for all relevant rows of dataframe
     """
-    im_df = grouped.get_group(im_num)
+    im_df = (grouped.get_group(im_num)).copy()
     im_df.drop("ImageNumber", axis=1, inplace=True)
     new_list = im_df.values.tolist()
     return new_list

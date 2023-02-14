@@ -18,7 +18,17 @@ Pipeline parts:
 
 (8) pixels_to_measurement: Converts pixels to measurements like micrometers if given a conversion factor 
 
+(9) summary_measurements: Makes scatterplots, histograms, and bar plots by image for a variety of factors
+
+Standalone scripts:
+(1) standalone_bokeh: Makes Bokeh server showing summary measurements 
+
+(2) standalone_clustering_test: For use in testing different methods and parameters of clustering 
+
+(3) standalone_cprof_label: Labels CellProfiler images 
+
 How to Use:
 (1) Download release 
 
 (2) Follow release README instructions
+

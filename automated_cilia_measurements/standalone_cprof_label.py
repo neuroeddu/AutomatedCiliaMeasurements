@@ -2,8 +2,6 @@ import pandas as pd
 from PIL import Image, ImageDraw
 import argparse
 from os.path import join
-from os import listdir
-from pathlib import Path
 
 # Makes paths for us to be able to find init imgs / for images to go
 def make_paths(num, label, path, prefix, digits):
@@ -17,7 +15,7 @@ def make_paths(num, label, path, prefix, digits):
 
 # Makes lists of coordinates
 def make_lists(im_num, grouped_cell):
-    cell_df = grouped_cell.get_group(im_num)
+    cell_df = (grouped_cell.get_group(im_num)).copy()
     cell_df.drop("ImageNumber", axis=1, inplace=True)
     cell_li = cell_df.values.tolist()
     return cell_li
@@ -100,3 +98,4 @@ def main(**args):
 
 if __name__ == "__main__":
     main()
+

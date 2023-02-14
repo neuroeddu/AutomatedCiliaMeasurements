@@ -131,8 +131,8 @@ def main(**args):
 
     for num in range(1, images + 1):
         # Get list of coords to plot
-        coords_df = grouped_cilia.get_group(num)
-        coords_df.drop(["ImageNumber"], axis=1, inplace=True)
+	coords_df = (grouped_cilia.get_group(num)).copy()        
+	coords_df.drop(["ImageNumber"], axis=1, inplace=True)
 
         coords_list = coords_df.values.tolist()
 
