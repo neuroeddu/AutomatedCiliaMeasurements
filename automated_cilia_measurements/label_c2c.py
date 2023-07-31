@@ -79,7 +79,7 @@ def main(**args):
 
     fields_c2c = ["ImageNumber", "Nucleus", "Centriole", "Cilia"]
     associate_df = pd.read_csv(
-        join(args["c2c"], "c2coutput.csv"), skipinitialspace=True, usecols=fields_c2c
+        join(args["c2c"], "c2c_output.csv"), skipinitialspace=True, usecols=fields_c2c
     )
     grouped_associates = associate_df.groupby(["ImageNumber"])
 

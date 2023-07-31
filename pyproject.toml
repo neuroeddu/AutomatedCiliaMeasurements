@@ -38,4 +38,3 @@ automated_cilia_measurements_summary_measurements = "automated_cilia_measurement
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-

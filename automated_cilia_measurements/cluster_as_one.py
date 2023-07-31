@@ -118,7 +118,7 @@ def main(**args):
     full_df, og_df = normalize_and_clean(
         measurements_nuc, measurements_cilia, measurements_cent, c2c_pairings
     )
-
+    
     if args.get("umap"):
         clusters = None
     if args.get("xmeans"):
@@ -345,7 +345,7 @@ def normalize_and_clean(
     ]  # NOTE this is done because pandas includes the index column
     normalized_df = normalize(df_to_cluster, axis=1)
     normalized_df = pd.DataFrame(normalized_df, columns=cols)
-    normalized_df.drop(columns=["to_del"], axis=0, inplace=True)
+    normalized_df = normalized_df.drop(columns=["to_del"], axis=0)
     return normalized_df, full_df
 
 

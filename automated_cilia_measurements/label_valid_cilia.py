@@ -99,6 +99,7 @@ def parse_args():
 def main(**args):
 
     args = args or parse_args()
+
     measurements_path = (
         join(args["measurements"], "MyExpt_") + CHANNEL_DICT[args["channel"]] + ".csv"
     )
@@ -115,9 +116,10 @@ def main(**args):
     )
 
     # if not all measurements are valid, merge
-    if args.get("c2c"):
+    c2c_path = args.get("c2c", "")
+    if c2c_path:
         c2c_result_type = "new_cilia.csv" if args["channel"] == "02" else "new_cent.csv"
-        c2c_path = join(args.get("c2c"), c2c_result_type)
+        c2c_path = join(c2c_path, c2c_result_type)
         valid_df = pd.read_csv(c2c_path, skipinitialspace=True)
         valid_df = valid_df.rename(columns={"0": "ImageNumber", "1": "ObjectNumber"})
         measurements_df = valid_df.merge(
@@ -131,8 +133,8 @@ def main(**args):
 
     for num in range(1, images + 1):
         # Get list of coords to plot
-	coords_df = (grouped_cilia.get_group(num)).copy()        
-	coords_df.drop(["ImageNumber"], axis=1, inplace=True)
+        coords_df = (grouped_cilia.get_group(num)).copy()
+        coords_df.drop(["ImageNumber"], axis=1, inplace=True)
 
         coords_list = coords_df.values.tolist()
 

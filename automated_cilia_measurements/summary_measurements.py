@@ -134,13 +134,12 @@ def how_many_blank_per_size_helper(
 
     # Set default endpt/step size 
     start = x.min()
-    end = x.max()
-    step = bin_maker_fd(x)
+
 
 
     # If we are doing default bins, we only need to return the bin width
     if not custom_bins:
-        return x, step
+        return x, bin_maker_fd(x)
 
     # Define custom endpt/step size for cilia
     if organelle == 2:
@@ -513,7 +512,7 @@ def main(**args):
     ]
 
     associate_df = pd.read_csv(
-        os.path.join(C2C_RESULTS, "c2coutput.csv"), skipinitialspace=True
+        os.path.join(C2C_RESULTS, "c2c_output.csv"), skipinitialspace=True
     )
     grouped_associates = associate_df.groupby(["ImageNumber"])
 

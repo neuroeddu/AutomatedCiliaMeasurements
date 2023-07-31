@@ -12,7 +12,7 @@ from plotly.offline import plot
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as shc
 import umap.umap_ as umap
-
+import warnings
 
 def parse_args():
     """
@@ -113,7 +113,7 @@ def main(**args):
 
     c2c_pairings = pd.read_csv(args["c2c"], skipinitialspace=True)
 
-    scores, clf, pca_2d, pca_7d, grouped_c2c = setup_for_clustering(
+    _, clf, pca_2d, pca_7d, grouped_c2c = setup_for_clustering(
         c2c_pairings, tuned_parameters
     )
 
@@ -128,10 +128,11 @@ def main(**args):
             measurements_nuc, measurements_cilia, measurements_cent, c2c_df
         )
         # Assume we do not have xmeans until proven otherwise
-        if args.get("umap"):
-            clusters = None
+
         if args.get("xmeans"):
             clusters = xmeans(full_df, clf, num, pca_2d, args.get("output"), og_df)
+        else:
+            clusters = None
         # want to use clusters if exists else none
         if args.get("umap"):
             umap_(full_df, num, args.get("output"), clusters, og_df)
@@ -172,7 +173,7 @@ def setup_for_clustering(c2c_pairings, tuned_parameters):
 
     # Set up the K-Means/scaling/PCA for visualization
     scores = ["precision", "recall"]
-    clf = GridSearchCV(KMeans(), tuned_parameters)
+    clf = GridSearchCV(KMeans(n_init=10), tuned_parameters)
     pca_2d = PCA(n_components=2)
     pca_7d = PCA(n_components=7)
 
@@ -295,7 +296,7 @@ def normalize_and_clean(
     measurements_cilia.drop("ImageNumber", axis=1, inplace=True)
     measurements_cent_1.drop("ImageNumber", axis=1, inplace=True)
     measurements_cent_2.drop("ImageNumber", axis=1, inplace=True)
-    c2c_df.drop("ImageNumber", axis=1, inplace=True)
+    c2c_df = c2c_df.drop("ImageNumber", axis=1)
 
     # Merge so we get the list of all measurements we desire
     full_df = c2c_df.merge(measurements_cilia, on=["Cilia"])
@@ -374,6 +375,10 @@ def umap_(full_df, num, output, clusters, og_df):
     :param og_df: Dataframe of all measurements to be used in clustering with no normalization
     :returns: None
     """
+    # Silence numba warnings from umap, since we can't do anything about those
+    # Note: for development, change this
+    warnings.filterwarnings("ignore")
+
     reducer = umap.UMAP()
     embedding = reducer.fit_transform(full_df)
     # if we want to use xmeans clusters, use them
@@ -524,7 +529,7 @@ def xmeans(full_df, clf, num, pca_2d, output, og_df):
 
         # Get only the points in one cluster
         cluster_df = og_df[og_df["Cluster"] == cluster]
-        cluster_df.drop(columns=["Cluster"], inplace=True)
+        cluster_df = cluster_df.drop(columns=["Cluster"])
 
         # Find the mean of each feature and write to string
         mean_df = cluster_df.mean()

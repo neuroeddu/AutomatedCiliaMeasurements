@@ -36,7 +36,7 @@ def main(**args):
     cilia_df = pd.read_csv(CSV_FOLDER + "/MyExpt_Cilia.csv", skipinitialspace=True)
     grouped_cilia = cilia_df.groupby(["ImageNumber"])
     associate_df = pd.read_csv(
-        C2C_OUTPUT_PATH + "/c2coutput.csv", skipinitialspace=True
+        C2C_OUTPUT_PATH + "/c2c_output.csv", skipinitialspace=True
     )
     grouped_associates = associate_df.groupby(["ImageNumber"])
     valid_cilia_df = pd.read_csv(
@@ -116,3 +116,7 @@ def make_result_dict(
     # which would be (rows in df wherein cilia is present)/(rows in nuclei df)
     print(result_dict)
     return pd.DataFrame.from_dict([result_dict])
+
+
+    
+

@@ -6,6 +6,7 @@ from automated_cilia_measurements.pixels_to_measurement import (
 )
 from automated_cilia_measurements.center2center import main as c2c
 from automated_cilia_measurements.clustering import main as clustering
+from automated_cilia_measurements.make_relations_df import main as make_relations_df
 from automated_cilia_measurements.label_cprof_im import main as label_cprof_im
 from automated_cilia_measurements.data_table import main as data_table
 from automated_cilia_measurements.label_c2c import main as label_c2c
@@ -13,7 +14,6 @@ from automated_cilia_measurements.label_valid_cilia import main as organelle_lab
 from automated_cilia_measurements.check_accuracy import main as check_accuracy
 from automated_cilia_measurements.cluster_as_one import main as cluster_as_one
 from automated_cilia_measurements.summary_measurements import main as summary_measurements
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -240,6 +240,14 @@ def main(**args):
         os.mkdir(c2c_output_path)
 
     c2c(input=csvs_in, output=c2c_output_path)
+
+    
+    relational_output_path = os.path.join(dir_out, "relations_output")
+    if not os.path.exists(relational_output_path):
+        os.mkdir(relational_output_path)
+
+    make_relations_df(measurements=csvs_in, c2c=os.path.join(c2c_output_path, "c2c_output.csv"), output=relational_output_path)
+    
 
     if (
         args.get("xmeans")
