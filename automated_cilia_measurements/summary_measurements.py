@@ -577,7 +577,16 @@ def main(**args):
     )
     centriole_df = centriole_df.merge(valid_cent_df, on=["ImageNumber", "ObjectNumber"])
     grouped_centriole = centriole_df.groupby(["ImageNumber"])
+    
+    means_nuc = grouped_cell.mean()
+    means_cilia = grouped_cilia.mean()
+    means_cent = grouped_centriole.mean()
 
+
+    means_nuc.to_csv(os.path.join(args.get("output"), "nuc_mean_by_image.csv"))
+    means_cilia.to_csv(os.path.join(args.get("output"), "cilia_mean_by_image.csv"))
+    means_cent.to_csv(os.path.join(args.get("output"), "cent_mean_by_image.csv"))
+    
     if args['measurements_per_im']:
         output_folder = os.path.join(OUTPUT, "measurements_per_image")
         if not os.path.exists(output_folder):

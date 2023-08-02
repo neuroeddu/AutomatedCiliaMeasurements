@@ -209,7 +209,7 @@ def parse_args():
         required=False, 
         action="store_true",
     )
-
+    
     return vars(parser.parse_args())
 
 
@@ -242,7 +242,7 @@ def main(**args):
     c2c(input=csvs_in, output=c2c_output_path)
 
     
-    relational_output_path = os.path.join(dir_out, "relations_output")
+    relational_output_path = os.path.join(dir_out, "c2c_output")
     if not os.path.exists(relational_output_path):
         os.mkdir(relational_output_path)
 

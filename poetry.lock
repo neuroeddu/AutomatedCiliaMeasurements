@@ -1324,16 +1324,6 @@ files = [
 ]
 
 [[package]]
-name = "sklearn"
-version = "0.0.post7"
-description = "deprecated sklearn package, use scikit-learn instead"
-optional = false
-python-versions = "*"
-files = [
-    {file = "sklearn-0.0.post7.tar.gz", hash = "sha256:1c89020b364fdc3aa2839e0ae34e8f0b406669e4b5c2359dda3ac398f9c76874"},
-]
-
-[[package]]
 name = "tenacity"
 version = "8.2.2"
 description = "Retry code until it succeeds"
@@ -1477,4 +1467,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "3.9.*"
-content-hash = "bf0337059e19dafaf59f6d349876a891d09bd0afa7830bf43d301e64498afa15"
+content-hash = "d9428b0e46271164873ceeb0e52d47c1d119e671a933f46dae39abfc59b5d365"

@@ -6,13 +6,11 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
 import argparse
 from sklearn.preprocessing import normalize
-from os.path import join
+import os
 import plotly.graph_objs as go
-from plotly.offline import plot
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as shc
 import umap.umap_ as umap
-import warnings
 
 def parse_args():
     """
@@ -90,7 +88,7 @@ def main(**args):
 
     # Convert the CSVs into dataframes and group by image
     measurements_cilia = pd.read_csv(
-        join(args["measurements"], "MyExpt_Cilia.csv"),
+        os.path.join(args["measurements"], "MyExpt_Cilia.csv"),
         skipinitialspace=True,
         usecols=fields,
     )
@@ -98,14 +96,14 @@ def main(**args):
     grouped_measurements_cilia = measurements_cilia.groupby(["ImageNumber"])
 
     measurements_nuc = pd.read_csv(
-        join(args["measurements"], "MyExpt_Nucleus.csv"),
+        os.path.join(args["measurements"], "MyExpt_Nucleus.csv"),
         skipinitialspace=True,
         usecols=fields,
     )
     grouped_measurements_nuc = measurements_nuc.groupby(["ImageNumber"])
 
     measurements_cent = pd.read_csv(
-        join(args["measurements"], "MyExpt_Centriole.csv"),
+        os.path.join(args["measurements"], "MyExpt_Centriole.csv"),
         skipinitialspace=True,
         usecols=fields,
     )
@@ -130,16 +128,32 @@ def main(**args):
         # Assume we do not have xmeans until proven otherwise
 
         if args.get("xmeans"):
-            clusters = xmeans(full_df, clf, num, pca_2d, args.get("output"), og_df)
+            output_folder = os.path.join(args.get("output"), "xmeans")
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+
+            clusters = xmeans(full_df, clf, num, pca_2d, output_folder, og_df)
         else:
             clusters = None
         # want to use clusters if exists else none
         if args.get("umap"):
-            umap_(full_df, num, args.get("output"), clusters, og_df)
+            output_folder = os.path.join(args.get("output"), "umap")
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+            
+            umap_(full_df, num, output_folder, clusters, og_df)
         if args.get("pca_features"):
-            pca_features(full_df, pca_7d, num, args.get("output"))
+            output_folder = os.path.join(args.get("output"), "pca_features")
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+            
+            pca_features(full_df, pca_7d, num, output_folder)
         if args.get("heirarchical"):
-            heirarchical_clustering(full_df, num, args.get("output"))
+            output_folder = os.path.join(args.get("output"), "heirarchical")
+            if not os.path.exists(output_folder):
+                os.mkdir(output_folder)
+
+            heirarchical_clustering(full_df, num, output_folder)
 
 
 def setup_for_clustering(c2c_pairings, tuned_parameters):
@@ -375,10 +389,6 @@ def umap_(full_df, num, output, clusters, og_df):
     :param og_df: Dataframe of all measurements to be used in clustering with no normalization
     :returns: None
     """
-    # Silence numba warnings from umap, since we can't do anything about those
-    # Note: for development, change this
-    warnings.filterwarnings("ignore")
-
     reducer = umap.UMAP()
     embedding = reducer.fit_transform(full_df)
     # if we want to use xmeans clusters, use them
@@ -387,7 +397,7 @@ def umap_(full_df, num, output, clusters, og_df):
         plt.gca().set_aspect("equal", "datalim")
         plt.colorbar(boundaries=np.arange(11) - 0.5).set_ticks(np.arange(10))
         plt.title(f"UMAP Image {num} with XMeans clusters", fontsize=18)
-        plt.savefig(join(output, f"UMAP_im_{num}_with_XMeans_clusters.png"))
+        plt.savefig(os.path.join(output, f"UMAP_im_{num}_with_XMeans_clusters.png"))
         plt.close()
 
     # also, do intensity umaps
@@ -411,7 +421,7 @@ def umap_(full_df, num, output, clusters, og_df):
         plt.colorbar()
         plt.gca().set_aspect("equal", "datalim")
         plt.title(f"UMAP Image {num} colored by {col}", fontsize=18)
-        plt.savefig(join(output, f"UMAP_im_{num}_clusters_{col}.png"))
+        plt.savefig(os.path.join(output, f"UMAP_im_{num}_clusters_{col}.png"))
         plt.close()
 
 
@@ -472,7 +482,7 @@ def pca_features(full_df, pca_7d, num, output):
         pc_components.append(sorted_components)
 
     # Print to file
-    with open(join(output, f"pca_features_im_{num}.txt"), "w") as f:
+    with open(os.path.join(output, f"pca_features_im_{num}.txt"), "w") as f:
         f.write(f"the 5 important features for each principal component are: ")
         for pc_num, sorted_components in enumerate(pc_components):
             f.write(f"PC number {pc_num}:\n")
@@ -495,7 +505,7 @@ def heirarchical_clustering(full_df, num, output):
     dend = shc.dendrogram(shc.linkage(full_df, method="ward"))
     plt.xlabel("Samples")
     plt.ylabel("Distance between samples")
-    plt.savefig(join(output, f"dendrogram_im_{num}.png"))
+    plt.savefig(os.path.join(output, f"dendrogram_im_{num}.png"))
     plt.close()
 
 
@@ -543,7 +553,7 @@ def xmeans(full_df, clf, num, pca_2d, output, og_df):
     result.columns = list(range(len(result.columns)))
     result = result.iloc[1:, :]
 
-    result.to_csv(path_or_buf=join(output, "mean_val_features.csv"))
+    result.to_csv(path_or_buf=os.path.join(output, "mean_val_features.csv"))
 
     # Perform PCA to get the data in a reduced form
     PCs_2d = pd.DataFrame(pca_2d.fit_transform(full_df.drop(["Cluster"], axis=1)))
@@ -552,7 +562,7 @@ def xmeans(full_df, clf, num, pca_2d, output, og_df):
 
     # Print out data for xmeans and clusters into csv
     og_df = pd.concat([og_df, PCs_2d], axis=1, join="inner")
-    og_df.to_csv(join(output, f"xmeans_data.csv"))
+    og_df.to_csv(os.path.join(output, f"xmeans_data.csv"))
 
     # Make data points for each cluster
     clusters_li = []
@@ -581,7 +591,7 @@ def xmeans(full_df, clf, num, pca_2d, output, og_df):
 
     fig = go.Figure(dict(data=clusters_li, layout=layout))
 
-    fig.write_html(join(output, f"xmeans_im_{num}.html"))
+    fig.write_html(os.path.join(output, f"xmeans_im_{num}.html"))
 
     # Return cluster so they can be used for UMAP
     return y_kmeans
